@@ -1,6 +1,6 @@
 // ====== CONFIG ======
-const SPOTIFY_CLIENT_ID = "YOUR_SPOTIFY_CLIENT_ID_HERE";
-const REDIRECT_URI = "https://YOUR_GITHUB_USERNAME.github.io/YOUR_REPO_NAME/";
+const SPOTIFY_CLIENT_ID = "9cf70d0696ac4e59af60645e76f90744";
+const REDIRECT_URI = "https://elijah-bodden.github.io/album-posters/";
 
 // DPI used for printing
 const DPI = 300;
