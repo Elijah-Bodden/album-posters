@@ -448,6 +448,18 @@ async function drawPosterCommon(options) {
     ctx.textAlign = "right";
     ctx.fillStyle = "#555";
     ctx.fillText("SONG BY " + artistName.toUppercase(), W - paddingX, imageBottom + gapBelowImage + unitsPerInch * 0.1);
+
+    ctx.font = `400 ${unitsPerInch * 0.18}px "Inter", system-ui, sans-serif`;
+    ctx.textAlign = "right";
+    ctx.fillStyle = "#555";
+    ctx.fillText("ALBUM BY " + artistName.toUpperCase(), W - paddingX, imageBottom + gapBelowImage);
+    ctx.fillText(durationLabel, W - paddingX, imageBottom + gapBelowImage + unitsPerInch * 0.4);
+    ctx.fillText(`RELEASE DATE: ${releaseDate}`, paddingX, gapBelowImage+unitsPerInch * 0.8);
+    ctx.fillText(
+      `RECORD LABEL: ${label || ""}`,
+      paddingX,
+      gapBelowImage+unitsPerInch * 1.2
+    );
   }
 
   // ==== COLOR BAR ====
@@ -464,16 +476,6 @@ async function drawPosterCommon(options) {
   }
 
   // if (singleSong) {
-  // ctx.font = `400 ${unitsPerInch * 0.18}px "Inter", system-ui, sans-serif`;
-  // ctx.textAlign = "right";
-  // ctx.fillStyle = "#555";
-  // ctx.fillText(durationLabel, W - paddingX, imageBottom + gapBelowImage/*+ unitsPerInch * 0.1*/);
-  // ctx.fillText(`RELEASE DATE: ${releaseDate}`, paddingX, gapBelowImage+unitsPerInch * 0.3);
-  // ctx.fillText(
-  //   `RECORD LABEL: ${label || ""}`,
-  //   paddingX,
-  //   gapBelowImage+unitsPerInch * 0.6
-  // );
   // }
   // else
   // {
