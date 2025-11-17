@@ -445,12 +445,12 @@ async function drawPosterCommon(options) {
   ctx.font = `400 ${unitsPerInch * 0.18}px "Inter", system-ui, sans-serif`;
   ctx.textAlign = "right";
   ctx.fillStyle = "#555";
-  ctx.fillText(durationLabel, W - paddingX, imageBottom + gapBelowImage + unitsPerInch * 0.1);
-  ctx.fillText(`RELEASE DATE: ${releaseDate}`, paddingX, footerY);
+  ctx.fillText(durationLabel, W - paddingX, imageBottom + gapBelowImage/*+ unitsPerInch * 0.1*/);
+  ctx.fillText(`RELEASE DATE: ${releaseDate}`, paddingX, gapBelowImage+unitsPerInch * 0.3);
   ctx.fillText(
     `RECORD LABEL: ${label || ""}`,
     paddingX,
-    footerY + unitsPerInch * 0.3
+    gapBelowImage+unitsPerInch * 0.6
   );
   }
   else
