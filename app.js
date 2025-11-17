@@ -341,17 +341,23 @@ async function extractPaletteFromImage(img, k = 4) {
 // ====== CORE DRAW (SHARED LAYOUT) ======
 async function drawPosterCommon(options) {
   const {
-    mainTitle,    // big text (artist)
-    subTitle,     // album or song name
-    rightLabel,   // "ALBUM BY X" or "SONG BY X"
+    isAlbum,
+    songOrAlbumName,
+    artistName,
     imageUrl,
     totalDurationMs,
     releaseDate,
     label,
-    singleSong,
     tracksForTracklist, // array of track names, or null for "no tracklist"
   } = options;
 
+  // LAYOUT CONSTANTS
+  const cornerRounding = 0.02;
+  const paletteColors = 4;
+  const gapBelowImage = unitsPerInch * 0.75;
+  const paddingX = W * 0.06;
+  const barHeight = unitsPerInch * 0.12;
+  
   updateCanvasSizeForMode();
   const ctx = posterCanvas.getContext("2d");
   ctx.setTransform(1, 0, 0, 1, 0, 0);
@@ -374,7 +380,7 @@ async function drawPosterCommon(options) {
   let palette = ["#bbbbbb", "#888888", "#555555", "#222222"];
   if (imageUrl) {
     img = await loadImage(imageUrl);
-    palette = await extractPaletteFromImage(img, 4);
+    palette = await extractPaletteFromImage(img, paletteColors);
   }
 
   // ==== TOP: full-width image with rounded corners ====
@@ -386,7 +392,7 @@ async function drawPosterCommon(options) {
     const x = 0;
     const y = 0;
 
-    const radius = W * 0.02;
+    const radius = W * cornerRounding;
 
     ctx.save();
     roundRect(ctx, x, y, drawW, drawH, radius);
@@ -399,31 +405,51 @@ async function drawPosterCommon(options) {
     imageBottom = H * 0.6;
   }
 
-  const gapBelowImage = unitsPerInch * 0.75;
-  const paddingX = W * 0.06;
   let cursorY = imageBottom + gapBelowImage;
 
-  // ==== TITLES ====
-  ctx.fillStyle = "#000000";
-  ctx.textAlign = "left";
-  ctx.textBaseline = "alphabetic";
-  ctx.font = `700 ${unitsPerInch * 0.45}px "Inter", system-ui, sans-serif`;
-  ctx.fillText(mainTitle, paddingX, cursorY);
-  cursorY += unitsPerInch * 0.5;
+  // Duration label
+  const totalSeconds = Math.round(totalDurationMs / 1000);
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = (totalSeconds % 60).toString().padStart(2, "0");
+  const durationLabel = `${minutes}:${seconds}`;
+  
+  if (isAlbum) {
+    ctx.fillStyle = "#000000";
+    ctx.textAlign = "left";
+    ctx.textBaseline = "alphabetic";
+    ctx.font = `700 ${unitsPerInch * 0.45}px "Inter", system-ui, sans-serif`;
+    ctx.fillText(songOrAlbumName, paddingX, cursorY);
+    cursorY += unitsPerInch * 0.5;
+  
+    ctx.font = `400 ${unitsPerInch * 0.32}px "Inter", system-ui, sans-serif`;
+    ctx.fillStyle = "#444";
+    ctx.fillText(artistName, paddingX, cursorY);
 
-  ctx.font = `400 ${unitsPerInch * 0.32}px "Inter", system-ui, sans-serif`;
-  ctx.fillStyle = "#444";
-  ctx.fillText(subTitle, paddingX, cursorY);
-
-  if (!singleSong) {
-  ctx.font = `400 ${unitsPerInch * 0.18}px "Inter", system-ui, sans-serif`;
-  ctx.textAlign = "right";
-  ctx.fillStyle = "#555";
-  ctx.fillText(rightLabel, W - paddingX, imageBottom + gapBelowImage + unitsPerInch * 0.1);
+    ctx.font = `400 ${unitsPerInch * 0.18}px "Inter", system-ui, sans-serif`;
+    ctx.textAlign = "right";
+    ctx.fillStyle = "#555";
+    ctx.fillText("ALBUM BY " + artistName.toUppercase(), W - paddingX, imageBottom + gapBelowImage + unitsPerInch * 0.1);
   }
+  else {
+    ctx.fillStyle = "#000000";
+    ctx.textAlign = "left";
+    ctx.textBaseline = "alphabetic";
+    ctx.font = `700 ${unitsPerInch * 0.45}px "Inter", system-ui, sans-serif`;
+    ctx.fillText(songOrAlbumName, paddingX, cursorY);
+    cursorY += unitsPerInch * 0.5;
+  
+    ctx.font = `400 ${unitsPerInch * 0.32}px "Inter", system-ui, sans-serif`;
+    ctx.fillStyle = "#444";
+    ctx.fillText(artistName, paddingX, cursorY);
+
+    ctx.font = `400 ${unitsPerInch * 0.18}px "Inter", system-ui, sans-serif`;
+    ctx.textAlign = "right";
+    ctx.fillStyle = "#555";
+    ctx.fillText("SONG BY " + artistName.toUppercase(), W - paddingX, imageBottom + gapBelowImage + unitsPerInch * 0.1);
+  }
+
   // ==== COLOR BAR ====
   const barTop = cursorY + unitsPerInch * 0.6;
-  const barHeight = unitsPerInch * 0.12;
   const barWidth = W - 2 * paddingX;
   const barX = paddingX;
 
@@ -435,73 +461,67 @@ async function drawPosterCommon(options) {
     ctx.fillRect(barX + i * segmentWidth, barTop, segmentWidth, barHeight);
   }
 
-  // Duration label
-  const totalSeconds = Math.round(totalDurationMs / 1000);
-  const minutes = Math.floor(totalSeconds / 60);
-  const seconds = (totalSeconds % 60).toString().padStart(2, "0");
-  const durationLabel = `${minutes}:${seconds}`;
+  // if (singleSong) {
+  // ctx.font = `400 ${unitsPerInch * 0.18}px "Inter", system-ui, sans-serif`;
+  // ctx.textAlign = "right";
+  // ctx.fillStyle = "#555";
+  // ctx.fillText(durationLabel, W - paddingX, imageBottom + gapBelowImage/*+ unitsPerInch * 0.1*/);
+  // ctx.fillText(`RELEASE DATE: ${releaseDate}`, paddingX, gapBelowImage+unitsPerInch * 0.3);
+  // ctx.fillText(
+  //   `RECORD LABEL: ${label || ""}`,
+  //   paddingX,
+  //   gapBelowImage+unitsPerInch * 0.6
+  // );
+  // }
+  // else
+  // {
+  // ctx.font = `400 ${unitsPerInch * 0.2}px "Inter", system-ui, sans-serif`;
+  // ctx.fillStyle = "#000";
+  // ctx.textAlign = "right";
+  // ctx.fillText(
+  //   durationLabel,
+  //   barX + barWidth,
+  //   barTop + barHeight + unitsPerInch * 0.5
+  // );
+  // }
+  // let trackStartY = barTop + barHeight + unitsPerInch * 0.9;
 
-  if (singleSong) {
-  ctx.font = `400 ${unitsPerInch * 0.18}px "Inter", system-ui, sans-serif`;
-  ctx.textAlign = "right";
-  ctx.fillStyle = "#555";
-  ctx.fillText(durationLabel, W - paddingX, imageBottom + gapBelowImage/*+ unitsPerInch * 0.1*/);
-  ctx.fillText(`RELEASE DATE: ${releaseDate}`, paddingX, gapBelowImage+unitsPerInch * 0.3);
-  ctx.fillText(
-    `RECORD LABEL: ${label || ""}`,
-    paddingX,
-    gapBelowImage+unitsPerInch * 0.6
-  );
-  }
-  else
-  {
-  ctx.font = `400 ${unitsPerInch * 0.2}px "Inter", system-ui, sans-serif`;
-  ctx.fillStyle = "#000";
-  ctx.textAlign = "right";
-  ctx.fillText(
-    durationLabel,
-    barX + barWidth,
-    barTop + barHeight + unitsPerInch * 0.5
-  );
-  }
-  let trackStartY = barTop + barHeight + unitsPerInch * 0.9;
+  // // ==== TRACKLIST (only if we have tracks) ====
+  // if (tracksForTracklist && tracksForTracklist.length > 0) {
+  //   ctx.textAlign = "left";
+  //   ctx.fillStyle = "#000";
+  //   ctx.font = `600 ${unitsPerInch * 0.22}px "Inter", system-ui, sans-serif`;
+  //   ctx.fillText("TRACKLIST", paddingX, trackStartY);
 
-  // ==== TRACKLIST (only if we have tracks) ====
-  if (tracksForTracklist && tracksForTracklist.length > 0) {
-    ctx.textAlign = "left";
-    ctx.fillStyle = "#000";
-    ctx.font = `600 ${unitsPerInch * 0.22}px "Inter", system-ui, sans-serif`;
-    ctx.fillText("TRACKLIST", paddingX, trackStartY);
+  //   trackStartY += unitsPerInch * 0.5;
+  //   ctx.font = `400 ${unitsPerInch * 0.18}px "Inter", system-ui, sans-serif`;
+  //   ctx.fillStyle = "#333";
 
-    trackStartY += unitsPerInch * 0.5;
-    ctx.font = `400 ${unitsPerInch * 0.18}px "Inter", system-ui, sans-serif`;
-    ctx.fillStyle = "#333";
+  //   const trackTextMaxWidth = W - 2 * paddingX;
+  //   const lineSpacing = unitsPerInch * 0.3;
+  //   let trackY = trackStartY;
 
-    const trackTextMaxWidth = W - 2 * paddingX;
-    const lineSpacing = unitsPerInch * 0.3;
-    let trackY = trackStartY;
+  //   const separator = "  |  ";
+  //   let currentLine = "";
 
-    const separator = "  |  ";
-    let currentLine = "";
+  //   function flushLine() {
+  //     if (!currentLine) return;
+  //     ctx.fillText(currentLine, paddingX, trackY);
+  //     trackY += lineSpacing;
+  //     currentLine = "";
+  //   }
 
-    function flushLine() {
-      if (!currentLine) return;
-      ctx.fillText(currentLine, paddingX, trackY);
-      trackY += lineSpacing;
-      currentLine = "";
-    }
-
-    for (let i = 0; i < tracksForTracklist.length; i++) {
-      const t = tracksForTracklist[i];
-      const nextPart = currentLine ? currentLine + separator + t : t;
-      const width = ctx.measureText(nextPart).width;
-      if (width > trackTextMaxWidth && currentLine) {
-        flushLine();
-        currentLine = t;
-      } else {
-        currentLine = nextPart;
-      }
-    }
+  //   for (let i = 0; i < tracksForTracklist.length; i++) {
+  //     const t = tracksForTracklist[i];
+  //     const nextPart = currentLine ? currentLine + separator + t : t;
+  //     const width = ctx.measureText(nextPart).width;
+  //     if (width > trackTextMaxWidth && currentLine) {
+  //       flushLine();
+  //       currentLine = t;
+  //     } else {
+  //       currentLine = nextPart;
+  //     }
+  //   }
     flushLine();
   }
 
