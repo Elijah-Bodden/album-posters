@@ -500,7 +500,7 @@ async function drawPosterCommon(options) {
     paddingX,
     footerY + unitsPerInch * 0.3
   );
-
+}
 // Album-specific wrapper
 async function drawAlbumPoster(albumData) {
   const imageUrl =
