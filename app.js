@@ -428,11 +428,6 @@ async function drawPosterCommon(options) {
     ctx.textAlign = "right";
     ctx.fillStyle = "#555";
     ctx.fillText("ALBUM BY " + artistName.toUpperCase(), W - paddingX, imageBottom + gapBelowImage + unitsPerInch * 0.1);
-    ctx.fillText(
-      durationLabel,
-      barX + barWidth,
-      barTop + barHeight + unitsPerInch * 0.5
-    );
   }
   else {
     ctx.fillStyle = "#000000";
@@ -468,6 +463,14 @@ async function drawPosterCommon(options) {
     ctx.fillRect(barX + i * segmentWidth, barTop, segmentWidth, barHeight);
   }
 
+  if (isAlbum) {
+    ctx.fillText(
+      durationLabel,
+      barX + barWidth,
+      barTop + barHeight + unitsPerInch * 0.5
+    );
+  }
+  
   let trackStartY = barTop + barHeight + unitsPerInch * 0.9;
 
   // ==== TRACKLIST (only if we have tracks) ====
