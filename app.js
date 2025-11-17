@@ -545,7 +545,7 @@ async function drawSongPoster(trackData) {
     subTitle,
     rightLabel,
     imageUrl,
-    totalDurationMs,
+    trackData.duration_ms,
     releaseDate,
     label,
     tracksForTracklist: null, // <-- truncate above tracklist
