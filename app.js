@@ -325,9 +325,6 @@ async function drawPosterForAlbum(albumData) {
   ctx.textAlign = "left";
   ctx.fillText(`RELEASE DATE: ${releaseDate}`, paddingX, footerY);
   ctx.fillText(`RECORD LABEL: ${label}`, paddingX, footerY + unitsPerInch * 0.3);
-
-  ctx.textAlign = "right";
-  ctx.fillText("Generated with Album Poster Generator", W - paddingX, footerY + unitsPerInch * 0.3);
 }
 
 function loadImage(url) {
