@@ -453,11 +453,6 @@ async function drawPosterCommon(options) {
 
     ctx.fillText(durationLabel, W - paddingX, imageBottom + gapBelowImage + unitsPerInch * 0.2);
     ctx.fillText(`RELEASE DATE: ${releaseDate}`, paddingX, gapBelowImage+unitsPerInch * 0.4);
-    ctx.fillText(
-      `RECORD LABEL: ${label || ""}`,
-      paddingX,
-      gapBelowImage+unitsPerInch * 1.2
-    );
   }
 
   // ==== COLOR BAR ====
