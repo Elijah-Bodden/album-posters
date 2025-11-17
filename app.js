@@ -351,14 +351,6 @@ async function drawPosterCommon(options) {
     tracksForTracklist, // array of track names, or null for "no tracklist"
   } = options;
 
-  // LAYOUT CONSTANTS
-  const unitsPerInch = 100;
-  const cornerRounding = 0.02;
-  const paletteColors = 4;
-  const gapBelowImage = unitsPerInch * 0.75;
-  const paddingX = W * 0.06;
-  const barHeight = unitsPerInch * 0.12;
-  
   updateCanvasSizeForMode();
   const ctx = posterCanvas.getContext("2d");
   ctx.setTransform(1, 0, 0, 1, 0, 0);
@@ -371,6 +363,16 @@ async function drawPosterCommon(options) {
   const scaleY = posterCanvas.height / H;
   ctx.scale(scaleX, scaleY);
 
+  // ****************
+  // LAYOUT CONSTANTS
+  // ****************
+  const unitsPerInch = 100;
+  const cornerRounding = 0.02;
+  const paletteColors = 4;
+  const gapBelowImage = unitsPerInch * 0.75;
+  const paddingX = W * 0.06;
+  const barHeight = unitsPerInch * 0.12;
+  
   // Background
   ctx.fillStyle = "#ffffff";
   ctx.fillRect(0, 0, W, H);
