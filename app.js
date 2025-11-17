@@ -501,14 +501,6 @@ async function drawPosterCommon(options) {
     footerY + unitsPerInch * 0.3
   );
 
-  ctx.textAlign = "right";
-  ctx.fillText(
-    "Generated with Spotify Poster Generator",
-    W - paddingX,
-    footerY + unitsPerInch * 0.3
-  );
-}
-
 // Album-specific wrapper
 async function drawAlbumPoster(albumData) {
   const imageUrl =
