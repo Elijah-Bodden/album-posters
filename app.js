@@ -544,7 +544,7 @@ async function drawSongPoster(trackData) {
 
   const mainTitle = (trackData.artists || []).map((a) => a.name).join(", ");
   const subTitle = trackData.name;
-  const rightLabel = `SONG BY ${mainTitle.toUpperCase()}`;
+  const rightLabel = ``;
   const totalDurationMs = trackData.duration_ms;
   const releaseDate = album.release_date;
   const label = album.label || "";
