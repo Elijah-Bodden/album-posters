@@ -444,4 +444,205 @@ async function drawPosterCommon(options) {
   ctx.textAlign = "right";
   ctx.fillText(
     durationLabel,
-    barX + barWidth
+    barX + barWidth,
+    barTop + barHeight + unitsPerInch * 0.5
+  );
+
+  let trackStartY = barTop + barHeight + unitsPerInch * 0.9;
+
+  // ==== TRACKLIST (only if we have tracks) ====
+  if (tracksForTracklist && tracksForTracklist.length > 0) {
+    ctx.textAlign = "left";
+    ctx.fillStyle = "#000";
+    ctx.font = `600 ${unitsPerInch * 0.22}px "Inter", system-ui, sans-serif`;
+    ctx.fillText("TRACKLIST", paddingX, trackStartY);
+
+    trackStartY += unitsPerInch * 0.5;
+    ctx.font = `400 ${unitsPerInch * 0.18}px "Inter", system-ui, sans-serif`;
+    ctx.fillStyle = "#333";
+
+    const trackTextMaxWidth = W - 2 * paddingX;
+    const lineSpacing = unitsPerInch * 0.3;
+    let trackY = trackStartY;
+
+    const separator = "  |  ";
+    let currentLine = "";
+
+    function flushLine() {
+      if (!currentLine) return;
+      ctx.fillText(currentLine, paddingX, trackY);
+      trackY += lineSpacing;
+      currentLine = "";
+    }
+
+    for (let i = 0; i < tracksForTracklist.length; i++) {
+      const t = tracksForTracklist[i];
+      const nextPart = currentLine ? currentLine + separator + t : t;
+      const width = ctx.measureText(nextPart).width;
+      if (width > trackTextMaxWidth && currentLine) {
+        flushLine();
+        currentLine = t;
+      } else {
+        currentLine = nextPart;
+      }
+    }
+    flushLine();
+  }
+
+  // ==== FOOTER ====
+  const footerY = H - unitsPerInch * 0.8;
+  ctx.font = `400 ${unitsPerInch * 0.18}px "Inter", system-ui, sans-serif`;
+  ctx.fillStyle = "#777";
+  ctx.textAlign = "left";
+  ctx.fillText(`RELEASE DATE: ${releaseDate}`, paddingX, footerY);
+  ctx.fillText(
+    `RECORD LABEL: ${label || ""}`,
+    paddingX,
+    footerY + unitsPerInch * 0.3
+  );
+
+  ctx.textAlign = "right";
+  ctx.fillText(
+    "Generated with Spotify Poster Generator",
+    W - paddingX,
+    footerY + unitsPerInch * 0.3
+  );
+}
+
+// Album-specific wrapper
+async function drawAlbumPoster(albumData) {
+  const imageUrl =
+    (albumData.images && albumData.images[0] && albumData.images[0].url) || null;
+  const mainTitle = (albumData.artists || []).map((a) => a.name).join(", ");
+  const subTitle = albumData.name;
+  const rightLabel = `ALBUM BY ${mainTitle.toUpperCase()}`;
+  const totalDurationMs = albumData.tracks.items.reduce(
+    (sum, t) => sum + t.duration_ms,
+    0
+  );
+  const tracks = albumData.tracks.items.map((t) => t.name);
+  const releaseDate = albumData.release_date;
+  const label = albumData.label || "";
+
+  await drawPosterCommon({
+    mainTitle,
+    subTitle,
+    rightLabel,
+    imageUrl,
+    totalDurationMs,
+    releaseDate,
+    label,
+    tracksForTracklist: tracks,
+  });
+}
+
+// Song-specific wrapper (no tracklist)
+async function drawSongPoster(trackData) {
+  const album = trackData.album;
+  const imageUrl =
+    (album.images && album.images[0] && album.images[0].url) || null;
+
+  const mainTitle = (trackData.artists || []).map((a) => a.name).join(", ");
+  const subTitle = trackData.name;
+  const rightLabel = `SONG BY ${mainTitle.toUpperCase()}`;
+  const totalDurationMs = trackData.duration_ms;
+  const releaseDate = album.release_date;
+  const label = album.label || "";
+
+  await drawPosterCommon({
+    mainTitle,
+    subTitle,
+    rightLabel,
+    imageUrl,
+    totalDurationMs,
+    releaseDate,
+    label,
+    tracksForTracklist: null, // <-- truncate above tracklist
+  });
+}
+
+// ====== EVENTS ======
+loginButton.addEventListener("click", (e) => {
+  e.preventDefault();
+  redirectToSpotifyAuth();
+});
+
+modeRadios.forEach((radio) => {
+  radio.addEventListener("change", () => {
+    currentMode = radio.value;
+    updateCanvasSizeForMode();
+    updateDownloadLabel();
+    if (currentMode === MODE_ALBUM) {
+      urlLabel.textContent = "Spotify album URL";
+      albumUrlInput.placeholder = "https://open.spotify.com/album/...";
+    } else {
+      urlLabel.textContent = "Spotify track URL";
+      albumUrlInput.placeholder = "https://open.spotify.com/track/...";
+    }
+  });
+});
+
+albumForm.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  if (!accessToken) {
+    authStatus.textContent = "Connect with Spotify first.";
+    return;
+  }
+
+  const url = albumUrlInput.value.trim();
+  try {
+    downloadButton.disabled = true;
+
+    if (currentMode === MODE_ALBUM) {
+      const albumId = extractAlbumIdFromUrl(url);
+      if (!albumId) {
+        alert("Couldn't parse album ID from that URL.");
+        downloadButton.disabled = false;
+        return;
+      }
+      authStatus.textContent = "Fetching album…";
+      const album = await fetchAlbum(albumId);
+      await drawAlbumPoster(album);
+      authStatus.textContent = `Loaded album "${album.name}"`;
+    } else {
+      const trackId = extractTrackIdFromUrl(url);
+      if (!trackId) {
+        alert("Couldn't parse track ID from that URL.");
+        downloadButton.disabled = false;
+        return;
+      }
+      authStatus.textContent = "Fetching track…";
+      const track = await fetchTrack(trackId);
+      await drawSongPoster(track);
+      authStatus.textContent = `Loaded song "${track.name}"`;
+    }
+
+    downloadButton.disabled = false;
+  } catch (err) {
+    console.error(err);
+    authStatus.textContent = "Error fetching data.";
+    downloadButton.disabled = false;
+  }
+});
+
+downloadButton.addEventListener("click", () => {
+  posterCanvas.toBlob(
+    (blob) => {
+      if (!blob) return;
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      const { width, height } = getPosterSizeIn();
+      a.href = url;
+      a.download = `spotify-poster-${width}x${height}-in.png`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    },
+    "image/png",
+    1.0
+  );
+});
+
+// ====== BOOTSTRAP ======
+initAuth();
