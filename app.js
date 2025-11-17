@@ -1,27 +1,50 @@
 // ====== CONFIG ======
-const SPOTIFY_CLIENT_ID = "9cf70d0696ac4e59af60645e76f90744";
-// When using GitHub Pages, set this to the *exact* HTTPS URL of index.html.
-const REDIRECT_URI = "https://elijah-bodden.github.io/album-posters/";
+const SPOTIFY_CLIENT_ID = "YOUR_SPOTIFY_CLIENT_ID_HERE";
+const REDIRECT_URI = "https://YOUR_GITHUB_USERNAME.github.io/YOUR_REPO_NAME/";
 
-// Poster physical size & DPI (controls output resolution)
-const POSTER_WIDTH_IN = 12;
-const POSTER_HEIGHT_IN = 18;
-const DPI = 300;             // 300 DPI is print quality
-const CANVAS_WIDTH = POSTER_WIDTH_IN * DPI;   // 3600
-const CANVAS_HEIGHT = POSTER_HEIGHT_IN * DPI; // 5400
+// DPI used for printing
+const DPI = 300;
+
+// Modes
+const MODE_ALBUM = "album";
+const MODE_SONG = "song";
+let currentMode = MODE_ALBUM;
+
+// Poster sizes (inches)
+function getPosterSizeIn() {
+  if (currentMode === MODE_SONG) {
+    return { width: 8.5, height: 11 }; // song mode
+  }
+  return { width: 12, height: 18 }; // album mode
+}
 
 // ====== DOM ======
 const loginButton = document.getElementById("loginButton");
 const authStatus = document.getElementById("authStatus");
 const albumForm = document.getElementById("albumForm");
 const albumUrlInput = document.getElementById("albumUrl");
+const urlLabel = document.getElementById("urlLabel");
 const posterCanvas = document.getElementById("posterCanvas");
 const downloadButton = document.getElementById("downloadButton");
-
-posterCanvas.width = CANVAS_WIDTH;
-posterCanvas.height = CANVAS_HEIGHT;
+const modeRadios = document.querySelectorAll('input[name="mode"]');
 
 let accessToken = null;
+
+// ====== CANVAS DIMENSIONS ======
+function updateCanvasSizeForMode() {
+  const { width, height } = getPosterSizeIn();
+  posterCanvas.width = width * DPI;
+  posterCanvas.height = height * DPI;
+}
+
+function updateDownloadLabel() {
+  const { width, height } = getPosterSizeIn();
+  downloadButton.textContent = `Download PNG (${width}×${height}" @ ${DPI} DPI)`;
+}
+
+// Initial size
+updateCanvasSizeForMode();
+updateDownloadLabel();
 
 // ====== PKCE UTILITIES ======
 async function generateCodeVerifier() {
@@ -59,7 +82,7 @@ function redirectToSpotifyAuth() {
     const params = new URLSearchParams({
       response_type: "code",
       client_id: SPOTIFY_CLIENT_ID,
-      scope: "user-read-email", // scope doesn't really matter for public album data
+      scope: "", // no special scopes needed
       redirect_uri: REDIRECT_URI,
       code_challenge_method: "S256",
       code_challenge: challenge,
@@ -113,7 +136,6 @@ function loadStoredToken() {
 
 // ====== INITIAL AUTH HANDLING ======
 async function initAuth() {
-  // 1) Handle redirect from Spotify (code in search params)
   const url = new URL(window.location.href);
   const code = url.searchParams.get("code");
   if (code) {
@@ -138,20 +160,30 @@ async function initAuth() {
   }
 }
 
-// ====== SPOTIFY DATA ======
+// ====== SPOTIFY DATA HELPERS ======
 function extractAlbumIdFromUrl(rawUrl) {
   if (!rawUrl) return null;
   try {
-    // Support full URLs like https://open.spotify.com/album/{id}?si=...
     const url = new URL(rawUrl);
-    const pathParts = url.pathname.split("/").filter(Boolean);
-    const idx = pathParts.indexOf("album");
-    if (idx !== -1 && pathParts[idx + 1]) {
-      return pathParts[idx + 1];
-    }
+    const parts = url.pathname.split("/").filter(Boolean);
+    const idx = parts.indexOf("album");
+    if (idx !== -1 && parts[idx + 1]) return parts[idx + 1];
   } catch {
-    // fallback: spotify:album:ID
     const match = rawUrl.match(/spotify:album:([a-zA-Z0-9]+)/);
+    if (match) return match[1];
+  }
+  return null;
+}
+
+function extractTrackIdFromUrl(rawUrl) {
+  if (!rawUrl) return null;
+  try {
+    const url = new URL(rawUrl);
+    const parts = url.pathname.split("/").filter(Boolean);
+    const idx = parts.indexOf("track");
+    if (idx !== -1 && parts[idx + 1]) return parts[idx + 1];
+  } catch {
+    const match = rawUrl.match(/spotify:track:([a-zA-Z0-9]+)/);
     if (match) return match[1];
   }
   return null;
@@ -159,212 +191,23 @@ function extractAlbumIdFromUrl(rawUrl) {
 
 async function fetchAlbum(albumId) {
   if (!accessToken) throw new Error("No access token");
-
   const res = await fetch(`https://api.spotify.com/v1/albums/${albumId}`, {
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-    },
+    headers: { Authorization: `Bearer ${accessToken}` },
   });
-
-  if (!res.ok) {
-    throw new Error("Failed to fetch album: " + res.status);
-  }
-
+  if (!res.ok) throw new Error("Failed to fetch album: " + res.status);
   return await res.json();
 }
 
-// ====== CANVAS RENDERING ======
-async function drawPosterForAlbum(albumData) {
-  const ctx = posterCanvas.getContext("2d");
-  ctx.setTransform(1, 0, 0, 1, 0, 0);
-  ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-
-  // Logical coordinate system in "units"
-  const unitsPerInch = 100;
-  const W = POSTER_WIDTH_IN * unitsPerInch;
-  const H = POSTER_HEIGHT_IN * unitsPerInch;
-  const scaleX = CANVAS_WIDTH / W;
-  const scaleY = CANVAS_HEIGHT / H;
-  ctx.scale(scaleX, scaleY);
-
-  // ==== BACKGROUND ====
-  ctx.fillStyle = "#ffffff";
-  ctx.fillRect(0, 0, W, H);
-
-  // ==== LOAD ALBUM ART ====
-  const imageUrl =
-    (albumData.images && albumData.images[0] && albumData.images[0].url) || null;
-
-  let img = null;
-  let palette = ["#bbbbbb", "#888888", "#555555", "#222222"]; // fallback
-
-  if (imageUrl) {
-    img = await loadImage(imageUrl);
-    // Extract 3–5 dominant colors, we'll just pick 4 for now
-    palette = await extractPaletteFromImage(img, 4);
-  }
-
-  // ==== TOP AREA: FULL-SIZE COVER ====
-  // Make the cover span the full width; Spotify covers are square,
-  // so height ~= width. We draw it at the top with no colored background.
-// ==== TOP AREA: FULL-SIZE COVER WITH ROUNDED CORNERS ====
-let imageBottom = 0;
-if (img) {
-  const aspect = img.width / img.height; // square-ish
-  const drawW = W;
-  const drawH = drawW / aspect;
-
-  const x = 0;
-  const y = 0;
-
-  // Rounded corners radius ~1.5% of width (looks good at poster scale)
-  const radius = W * 0.02;
-
-  ctx.save();
-  roundRect(ctx, x, y, drawW, drawH, radius);
-  ctx.clip();
-  ctx.drawImage(img, x, y, drawW, drawH);
-  ctx.restore();
-
-  imageBottom = y + drawH;
-} else {
-  imageBottom = H * 0.6;
+async function fetchTrack(trackId) {
+  if (!accessToken) throw new Error("No access token");
+  const res = await fetch(`https://api.spotify.com/v1/tracks/${trackId}`, {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+  if (!res.ok) throw new Error("Failed to fetch track: " + res.status);
+  return await res.json();
 }
 
-  // Small vertical gap between image and text area
-  const gapBelowImage = unitsPerInch * 0.75;
-  const textStartY = imageBottom + gapBelowImage;
-
-  // ==== TEXT AREA (BOTTOM) ====
-  const paddingX = W * 0.03;
-  let cursorY = textStartY;
-
-  // Album / artist
-  const albumTitle = albumData.name;
-  const artistName = (albumData.artists || [])
-    .map((a) => a.name)
-    .join(", ");
-
-  // Artist name (big, bold)
-  ctx.fillStyle = "#000000";
-  ctx.textAlign = "left";
-  ctx.textBaseline = "alphabetic";
-  ctx.font = `700 ${unitsPerInch * 0.45}px "Inter", system-ui, sans-serif`;
-  ctx.fillText(artistName, paddingX, cursorY);
-  cursorY += unitsPerInch * 0.5;
-
-  // Album title (smaller, lighter)
-  ctx.font = `400 ${unitsPerInch * 0.32}px "Inter", system-ui, sans-serif`;
-  ctx.fillStyle = "#444";
-  ctx.fillText(albumTitle, paddingX, cursorY);
-
-  // "ALBUM BY ..." label on the right, aligned roughly with artist line
-  const rightLabel = `ALBUM BY ${artistName.toUpperCase()}`;
-  ctx.font = `400 ${unitsPerInch * 0.18}px "Inter", system-ui, sans-serif`;
-  ctx.textAlign = "right";
-  ctx.fillStyle = "#555";
-  ctx.fillText(rightLabel, W - paddingX, textStartY + unitsPerInch * 0.1);
-
-  // ==== COLOR BAR (PALETTE-BASED) ====
-  // Compute bar geometry
-  const barTop = cursorY + unitsPerInch * 0.6;
-  const barHeight = unitsPerInch * 0.12;
-  const barWidth = W - 2 * paddingX;
-  const barX = paddingX;
-
-  // Draw segmented bar: equal-length segments from dominant colors
-  const nSegments = palette.length;
-  const segmentWidth = barWidth / nSegments;
-
-  for (let i = 0; i < nSegments; i++) {
-    ctx.fillStyle = palette[i];
-    ctx.fillRect(barX + i * segmentWidth, barTop, segmentWidth, barHeight);
-  }
-
-  // Duration label to the right below the bar
-  const totalMs = albumData.tracks.items.reduce(
-    (sum, t) => sum + t.duration_ms,
-    0
-  );
-  const totalSeconds = Math.round(totalMs / 1000);
-  const minutes = Math.floor(totalSeconds / 60);
-  const seconds = (totalSeconds % 60).toString().padStart(2, "0");
-  const durationLabel = `${minutes}:${seconds}`;
-
-  ctx.font = `400 ${unitsPerInch * 0.2}px "Inter", system-ui, sans-serif`;
-  ctx.fillStyle = "#000";
-  ctx.textAlign = "right";
-  ctx.fillText(
-    durationLabel,
-    barX + barWidth,
-    barTop + barHeight + unitsPerInch * 0.5
-  );
-
-  // Advance cursor below the bar + duration
-  let trackStartY = barTop + barHeight + unitsPerInch * 0.9;
-
-  // ==== TRACKLIST ====
-  const tracks = albumData.tracks.items.map((t) => t.name);
-
-  ctx.textAlign = "left";
-  ctx.fillStyle = "#000";
-  ctx.font = `600 ${unitsPerInch * 0.22}px "Inter", system-ui, sans-serif`;
-  ctx.fillText("TRACKLIST", paddingX, trackStartY);
-
-  trackStartY += unitsPerInch * 0.5;
-  ctx.font = `400 ${unitsPerInch * 0.18}px "Inter", system-ui, sans-serif`;
-  ctx.fillStyle = "#333";
-
-  const trackTextMaxWidth = W - 2 * paddingX;
-  const lineSpacing = unitsPerInch * 0.3;
-  let trackY = trackStartY;
-
-  const separator = "  |  ";
-  let currentLine = "";
-
-  function flushLine() {
-    if (!currentLine) return;
-    ctx.fillText(currentLine, paddingX, trackY);
-    trackY += lineSpacing;
-    currentLine = "";
-  }
-
-  for (let i = 0; i < tracks.length; i++) {
-    const t = tracks[i];
-    const nextPart = currentLine ? currentLine + separator + t : t;
-    const width = ctx.measureText(nextPart).width;
-    if (width > trackTextMaxWidth && currentLine) {
-      flushLine();
-      currentLine = t;
-    } else {
-      currentLine = nextPart;
-    }
-  }
-  flushLine();
-
-  // ==== FOOTER (release date / label) ====
-  const footerY = H - unitsPerInch * 0.8;
-  const releaseDate = albumData.release_date;
-  const label = albumData.label || "";
-
-  ctx.font = `400 ${unitsPerInch * 0.18}px "Inter", system-ui, sans-serif`;
-  ctx.fillStyle = "#777";
-  ctx.textAlign = "left";
-  ctx.fillText(`RELEASE DATE: ${releaseDate}`, paddingX, footerY);
-  ctx.fillText(
-    `RECORD LABEL: ${label}`,
-    paddingX,
-    footerY + unitsPerInch * 0.3
-  );
-
-  // ctx.textAlign = "right";
-  // ctx.fillText(
-  //   "Generated with Album Poster Generator",
-  //   W - paddingX,
-  //   footerY + unitsPerInch * 0.3
-  // );
-}
-
+// ====== DRAW HELPERS ======
 function loadImage(url) {
   return new Promise((resolve, reject) => {
     const img = new Image();
@@ -375,20 +218,27 @@ function loadImage(url) {
   });
 }
 
+function roundRect(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + w - r, y);
+  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+  ctx.lineTo(x + w, y + h - r);
+  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  ctx.lineTo(x + r, y + h);
+  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+  ctx.lineTo(x, y + r);
+  ctx.quadraticCurveTo(x, y, x + r, y);
+  ctx.closePath();
+}
+
 /**
- * Extract a small palette of dominant colors from an image using
- * a simple k-means clustering over RGB space.
- *
- * @param {HTMLImageElement} img
- * @param {number} k - number of colors (3–5 recommended)
- * @returns {Promise<string[]>} - array of CSS color strings
+ * Simple k-means palette extractor in RGB space.
  */
 async function extractPaletteFromImage(img, k = 4) {
-  // Downscale to keep it cheap
-  const sampleSize = 80; // 80x80 = 6400 pixels max
+  const sampleSize = 80;
   const offCanvas = document.createElement("canvas");
   const offCtx = offCanvas.getContext("2d");
-
   offCanvas.width = sampleSize;
   offCanvas.height = sampleSize;
 
@@ -396,14 +246,12 @@ async function extractPaletteFromImage(img, k = 4) {
   const imageData = offCtx.getImageData(0, 0, sampleSize, sampleSize);
   const data = imageData.data;
 
-  // Collect RGB samples
   const pixels = [];
   for (let i = 0; i < data.length; i += 4) {
     const r = data[i];
     const g = data[i + 1];
     const b = data[i + 2];
     const a = data[i + 3];
-    // Ignore fully transparent pixels
     if (a < 128) continue;
     pixels.push([r, g, b]);
   }
@@ -412,17 +260,14 @@ async function extractPaletteFromImage(img, k = 4) {
     return ["#bbbbbb", "#888888", "#555555", "#222222"].slice(0, k);
   }
 
-  // Initialize centers by random sampling
   const centers = [];
   for (let i = 0; i < k; i++) {
     centers.push(pixels[Math.floor(Math.random() * pixels.length)].slice());
   }
 
-  // k-means iterations
   const maxIters = 8;
   for (let iter = 0; iter < maxIters; iter++) {
     const clusters = Array.from({ length: k }, () => []);
-    // Assign step
     for (let p = 0; p < pixels.length; p++) {
       const [r, g, b] = pixels[p];
       let bestIdx = 0;
@@ -440,7 +285,6 @@ async function extractPaletteFromImage(img, k = 4) {
       }
       clusters[bestIdx].push(pixels[p]);
     }
-    // Update step
     for (let c = 0; c < k; c++) {
       const cluster = clusters[c];
       if (cluster.length === 0) continue;
@@ -458,8 +302,6 @@ async function extractPaletteFromImage(img, k = 4) {
     }
   }
 
-  // Rank centers by how many pixels they got (roughly)
-  // Re-run assignment just to count
   const counts = new Array(k).fill(0);
   for (let p = 0; p < pixels.length; p++) {
     const [r, g, b] = pixels[p];
@@ -482,9 +324,7 @@ async function extractPaletteFromImage(img, k = 4) {
   const indexed = centers.map((rgb, idx) => ({ rgb, count: counts[idx] }));
   indexed.sort((a, b) => b.count - a.count);
 
-  // Convert to CSS colors, avoid super-near-white for visibility
   const palette = indexed.map(({ rgb: [r, g, b] }) => {
-    // Slightly clamp extreme whites so they show up on white paper
     const maxChannel = Math.max(r, g, b);
     if (maxChannel > 245) {
       const scale = 245 / maxChannel;
@@ -498,69 +338,110 @@ async function extractPaletteFromImage(img, k = 4) {
   return palette.slice(0, k);
 }
 
-function roundRect(ctx, x, y, w, h, r) {
-  ctx.beginPath();
-  ctx.moveTo(x + r, y);
-  ctx.lineTo(x + w - r, y);
-  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
-  ctx.lineTo(x + w, y + h - r);
-  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
-  ctx.lineTo(x + r, y + h);
-  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
-  ctx.lineTo(x, y + r);
-  ctx.quadraticCurveTo(x, y, x + r, y);
-  ctx.closePath();
-}
+// ====== CORE DRAW (SHARED LAYOUT) ======
+async function drawPosterCommon(options) {
+  const {
+    mainTitle,    // big text (artist)
+    subTitle,     // album or song name
+    rightLabel,   // "ALBUM BY X" or "SONG BY X"
+    imageUrl,
+    totalDurationMs,
+    releaseDate,
+    label,
+    tracksForTracklist, // array of track names, or null for "no tracklist"
+  } = options;
 
-// ====== EVENTS ======
-loginButton.addEventListener("click", (e) => {
-  e.preventDefault();
-  redirectToSpotifyAuth();
-});
+  updateCanvasSizeForMode();
+  const ctx = posterCanvas.getContext("2d");
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.clearRect(0, 0, posterCanvas.width, posterCanvas.height);
 
-albumForm.addEventListener("submit", async (e) => {
-  e.preventDefault();
-  if (!accessToken) {
-    authStatus.textContent = "Connect with Spotify first.";
-    return;
+  const { width: posterWIn, height: posterHIn } = getPosterSizeIn();
+  const unitsPerInch = 100;
+  const W = posterWIn * unitsPerInch;
+  const H = posterHIn * unitsPerInch;
+  const scaleX = posterCanvas.width / W;
+  const scaleY = posterCanvas.height / H;
+  ctx.scale(scaleX, scaleY);
+
+  // Background
+  ctx.fillStyle = "#ffffff";
+  ctx.fillRect(0, 0, W, H);
+
+  // Load image + palette
+  let img = null;
+  let palette = ["#bbbbbb", "#888888", "#555555", "#222222"];
+  if (imageUrl) {
+    img = await loadImage(imageUrl);
+    palette = await extractPaletteFromImage(img, 4);
   }
-  const url = albumUrlInput.value.trim();
-  const albumId = extractAlbumIdFromUrl(url);
-  if (!albumId) {
-    alert("Couldn't parse album ID from that URL.");
-    return;
+
+  // ==== TOP: full-width image with rounded corners ====
+  let imageBottom = 0;
+  if (img) {
+    const aspect = img.width / img.height;
+    const drawW = W;
+    const drawH = drawW / aspect;
+    const x = 0;
+    const y = 0;
+
+    const radius = W * 0.02;
+
+    ctx.save();
+    roundRect(ctx, x, y, drawW, drawH, radius);
+    ctx.clip();
+    ctx.drawImage(img, x, y, drawW, drawH);
+    ctx.restore();
+
+    imageBottom = y + drawH;
+  } else {
+    imageBottom = H * 0.6;
   }
 
-  try {
-    downloadButton.disabled = true;
-    authStatus.textContent = "Fetching album…";
-    const album = await fetchAlbum(albumId);
-    await drawPosterForAlbum(album);
-    downloadButton.disabled = false;
-    authStatus.textContent = `Loaded "${album.name}"`;
-  } catch (err) {
-    console.error(err);
-    authStatus.textContent = "Error fetching album.";
+  const gapBelowImage = unitsPerInch * 0.75;
+  const paddingX = W * 0.06;
+  let cursorY = imageBottom + gapBelowImage;
+
+  // ==== TITLES ====
+  ctx.fillStyle = "#000000";
+  ctx.textAlign = "left";
+  ctx.textBaseline = "alphabetic";
+  ctx.font = `700 ${unitsPerInch * 0.45}px "Inter", system-ui, sans-serif`;
+  ctx.fillText(mainTitle, paddingX, cursorY);
+  cursorY += unitsPerInch * 0.5;
+
+  ctx.font = `400 ${unitsPerInch * 0.32}px "Inter", system-ui, sans-serif`;
+  ctx.fillStyle = "#444";
+  ctx.fillText(subTitle, paddingX, cursorY);
+
+  ctx.font = `400 ${unitsPerInch * 0.18}px "Inter", system-ui, sans-serif`;
+  ctx.textAlign = "right";
+  ctx.fillStyle = "#555";
+  ctx.fillText(rightLabel, W - paddingX, imageBottom + gapBelowImage + unitsPerInch * 0.1);
+
+  // ==== COLOR BAR ====
+  const barTop = cursorY + unitsPerInch * 0.6;
+  const barHeight = unitsPerInch * 0.12;
+  const barWidth = W - 2 * paddingX;
+  const barX = paddingX;
+
+  const nSegments = palette.length;
+  const segmentWidth = barWidth / nSegments;
+
+  for (let i = 0; i < nSegments; i++) {
+    ctx.fillStyle = palette[i];
+    ctx.fillRect(barX + i * segmentWidth, barTop, segmentWidth, barHeight);
   }
-});
 
-downloadButton.addEventListener("click", () => {
-  posterCanvas.toBlob(
-    (blob) => {
-      if (!blob) return;
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "album-poster-12x18-300dpi.png";
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      URL.revokeObjectURL(url);
-    },
-    "image/png",
-    1.0
-  );
-});
+  // Duration label
+  const totalSeconds = Math.round(totalDurationMs / 1000);
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = (totalSeconds % 60).toString().padStart(2, "0");
+  const durationLabel = `${minutes}:${seconds}`;
 
-// ====== BOOTSTRAP ======
-initAuth();
+  ctx.font = `400 ${unitsPerInch * 0.2}px "Inter", system-ui, sans-serif`;
+  ctx.fillStyle = "#000";
+  ctx.textAlign = "right";
+  ctx.fillText(
+    durationLabel,
+    barX + barWidth
