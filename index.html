@@ -10,46 +10,45 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
-  <main class="page">
-    <div class="layout">
-      <!-- LEFT: large preview -->
-      <section class="preview-column">
-        <h2>Poster preview</h2>
+  <main class="layout">
+    <!-- LEFT: poster preview -->
+    <section class="preview-pane">
+      <div class="preview-inner">
         <canvas id="posterCanvas"></canvas>
         <button id="downloadButton" class="button primary" disabled>
           Download PNG (12×18" @ 300 DPI)
         </button>
         <p class="hint">
-          Upload this PNG to a print service and order a 12×18" full-bleed print.
+          Upload the PNG to a print shop and order a 12×18&quot; full-bleed print.
         </p>
+      </div>
+    </section>
+
+    <!-- RIGHT: controls / info -->
+    <section class="control-pane">
+      <header class="header">
+        <h1>Album Poster Generator</h1>
+        <p>Create a 12×18&quot; poster from a Spotify album link.</p>
+      </header>
+
+      <section class="controls">
+        <div class="auth">
+          <button id="loginButton" class="button">Connect with Spotify</button>
+          <span id="authStatus" class="auth-status"></span>
+        </div>
+
+        <form id="albumForm" class="album-form">
+          <label for="albumUrl">Spotify album URL</label>
+          <input
+            id="albumUrl"
+            type="url"
+            placeholder="https://open.spotify.com/album/..."
+            required
+          />
+          <button type="submit" class="button primary">Generate Poster</button>
+        </form>
       </section>
-
-      <!-- RIGHT: interface -->
-      <section class="ui-column">
-        <header class="header">
-          <h1>Album Poster Generator</h1>
-          <p>Create a 12×18&quot; Billie-style poster from a Spotify album.</p>
-        </header>
-
-        <section class="controls">
-          <div class="auth">
-            <button id="loginButton" class="button">Connect with Spotify</button>
-            <span id="authStatus" class="auth-status"></span>
-          </div>
-
-          <form id="albumForm" class="album-form">
-            <label for="albumUrl">Spotify album URL</label>
-            <input
-              id="albumUrl"
-              type="url"
-              placeholder="https://open.spotify.com/album/..."
-              required
-            />
-            <button type="submit" class="button primary">Generate Poster</button>
-          </form>
-        </section>
-      </section>
-    </div>
+    </section>
   </main>
 
   <script src="app.js"></script>
