@@ -538,7 +538,7 @@ async function drawSongPoster(trackData) {
   const subTitle = (trackData.artists || []).map((a) => a.name).join(", ");
   const rightLabel = ``;
   const releaseDate = album.release_date;
-  // const label = album.label || "";
+  const label = "";
 
   await drawPosterCommon({
     mainTitle,
