@@ -207,7 +207,6 @@ async function drawPosterForAlbum(albumData) {
   // ==== TOP AREA: FULL-SIZE COVER ====
   // Make the cover span the full width; Spotify covers are square,
   // so height ~= width. We draw it at the top with no colored background.
-  let imageBottom = 0;
 // ==== TOP AREA: FULL-SIZE COVER WITH ROUNDED CORNERS ====
 let imageBottom = 0;
 if (img) {
