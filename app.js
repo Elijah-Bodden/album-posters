@@ -545,6 +545,7 @@ async function drawAlbumPoster(albumData) {
   const artistName = (albumData.artists || []).map((a) => a.name).join(", ");
   const songOrAlbumName = albumData.name;
   const rightLabel = `ALBUM BY ${artistName.toUpperCase()}`;
+  console.log(albumData)
   const totalDurationMs = albumData.tracks.items.reduce(
     (sum, t) => sum + t.duration_ms,
     0
@@ -577,6 +578,7 @@ async function drawSongPoster(trackData) {
   const rightLabel = ``;
   const releaseDate = album.release_date;
   const label = "";
+  console.log(trackData)
   
 
   await drawPosterCommon({
