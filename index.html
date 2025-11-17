@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Album Poster Generator</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="style.css" />
+  <!-- use Inter as a clean modern sans; adjust if you want -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <main class="page">
+    <header class="header">
+      <h1>Album Poster Generator</h1>
+      <p>Create a 12×18&quot; poster from a Spotify album.</p>
+    </header>
+
+    <section class="controls">
+      <div class="auth">
+        <button id="loginButton" class="button">Connect with Spotify</button>
+        <span id="authStatus" class="auth-status"></span>
+      </div>
+
+      <form id="albumForm" class="album-form">
+        <label for="albumUrl">Spotify album URL</label>
+        <input
+          id="albumUrl"
+          type="url"
+          placeholder="https://open.spotify.com/album/..."
+          required
+        />
+        <button type="submit" class="button primary">Generate Poster</button>
+      </form>
+    </section>
+
+    <section class="preview">
+      <h2>Preview</h2>
+      <canvas id="posterCanvas"></canvas>
+      <button id="downloadButton" class="button primary" disabled>
+        Download PNG (12×18&quot; @ 300 DPI)
+      </button>
+      <p class="hint">
+        Tip: upload the PNG to any print service and order a 12×18&quot; print.
+        The file is full-bleed, no margins.
+      </p>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
