@@ -357,12 +357,12 @@ if (img) {
     footerY + unitsPerInch * 0.3
   );
 
-  ctx.textAlign = "right";
-  ctx.fillText(
-    "Generated with Album Poster Generator",
-    W - paddingX,
-    footerY + unitsPerInch * 0.3
-  );
+  // ctx.textAlign = "right";
+  // ctx.fillText(
+  //   "Generated with Album Poster Generator",
+  //   W - paddingX,
+  //   footerY + unitsPerInch * 0.3
+  // );
 }
 
 function loadImage(url) {
