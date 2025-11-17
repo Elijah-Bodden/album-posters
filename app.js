@@ -208,20 +208,32 @@ async function drawPosterForAlbum(albumData) {
   // Make the cover span the full width; Spotify covers are square,
   // so height ~= width. We draw it at the top with no colored background.
   let imageBottom = 0;
-  if (img) {
-    const aspect = img.width / img.height; // ~1
-    const drawW = W;
-    const drawH = drawW / aspect;
-    const x = 0;
-    const y = 0;
-    ctx.drawImage(img, x, y, drawW, drawH);
-    imageBottom = y + drawH;
-  } else {
-    imageBottom = H * 0.6; // fallback if no img, unlikely
-  }
+// ==== TOP AREA: FULL-SIZE COVER WITH ROUNDED CORNERS ====
+let imageBottom = 0;
+if (img) {
+  const aspect = img.width / img.height; // square-ish
+  const drawW = W;
+  const drawH = drawW / aspect;
+
+  const x = 0;
+  const y = 0;
+
+  // Rounded corners radius ~1.5% of width (looks good at poster scale)
+  const radius = W * 0.02;
+
+  ctx.save();
+  roundRect(ctx, x, y, drawW, drawH, radius);
+  ctx.clip();
+  ctx.drawImage(img, x, y, drawW, drawH);
+  ctx.restore();
+
+  imageBottom = y + drawH;
+} else {
+  imageBottom = H * 0.6;
+}
 
   // Small vertical gap between image and text area
-  const gapBelowImage = unitsPerInch * 0.4;
+  const gapBelowImage = unitsPerInch * 0.75;
   const textStartY = imageBottom + gapBelowImage;
 
   // ==== TEXT AREA (BOTTOM) ====
@@ -486,6 +498,21 @@ async function extractPaletteFromImage(img, k = 4) {
 
   return palette.slice(0, k);
 }
+
+function roundRect(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + w - r, y);
+  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+  ctx.lineTo(x + w, y + h - r);
+  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  ctx.lineTo(x + r, y + h);
+  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+  ctx.lineTo(x, y + r);
+  ctx.quadraticCurveTo(x, y, x + r, y);
+  ctx.closePath();
+}
+
 // ====== EVENTS ======
 loginButton.addEventListener("click", (e) => {
   e.preventDefault();
