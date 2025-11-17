@@ -356,6 +356,7 @@ async function drawPosterCommon(options) {
   ctx.setTransform(1, 0, 0, 1, 0, 0);
   ctx.clearRect(0, 0, posterCanvas.width, posterCanvas.height);
 
+  const unitsPerInch = 100;
   const { width: posterWIn, height: posterHIn } = getPosterSizeIn();
   const W = posterWIn * unitsPerInch;
   const H = posterHIn * unitsPerInch;
@@ -366,7 +367,6 @@ async function drawPosterCommon(options) {
   // ****************
   // LAYOUT CONSTANTS
   // ****************
-  const unitsPerInch = 100;
   const cornerRounding = 0.02;
   const paletteColors = 4;
   const gapBelowImage = unitsPerInch * 0.75;
