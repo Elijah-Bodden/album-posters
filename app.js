@@ -534,8 +534,8 @@ async function drawSongPoster(trackData) {
   const imageUrl =
     (album.images && album.images[0] && album.images[0].url) || null;
 
-  const mainTitle = (trackData.artists || []).map((a) => a.name).join(", ");
-  const subTitle = trackData.name;
+  const mainTitle = trackData.name;
+  const subTitle = (trackData.artists || []).map((a) => a.name).join(", ");
   const rightLabel = ``;
   const totalDurationMs = trackData.duration_ms;
   const releaseDate = album.release_date;
