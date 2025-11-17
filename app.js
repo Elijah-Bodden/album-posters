@@ -179,7 +179,7 @@ async function drawPosterForAlbum(albumData) {
   ctx.setTransform(1, 0, 0, 1, 0, 0);
   ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
-  // Logical coordinate system in points; 100 units per inch just to get nicer numbers.
+  // Logical coordinate system in "units"
   const unitsPerInch = 100;
   const W = POSTER_WIDTH_IN * unitsPerInch;
   const H = POSTER_HEIGHT_IN * unitsPerInch;
@@ -191,80 +191,90 @@ async function drawPosterForAlbum(albumData) {
   ctx.fillStyle = "#ffffff";
   ctx.fillRect(0, 0, W, H);
 
-  // ==== TOP IMAGE AREA ====
-  // Roughly top 60% for the album art area (like your Billie poster)
-  const topAreaHeight = H * 0.6;
+  // ==== LOAD ALBUM ART ====
+  const imageUrl =
+    (albumData.images && albumData.images[0] && albumData.images[0].url) || null;
 
-  // background for top area: dark toned (subtle gradient)
-  const grad = ctx.createLinearGradient(0, 0, 0, topAreaHeight);
-  grad.addColorStop(0, "#021427");
-  grad.addColorStop(1, "#08254f");
-  ctx.fillStyle = grad;
-  ctx.fillRect(0, 0, W, topAreaHeight);
+  let img = null;
+  let palette = ["#bbbbbb", "#888888", "#555555", "#222222"]; // fallback
 
-  // Load album art (largest image)
-  const imageUrl = (albumData.images && albumData.images[0] && albumData.images[0].url) || null;
   if (imageUrl) {
-    const img = await loadImage(imageUrl);
-    const aspect = img.width / img.height; // usually 1:1
-
-    // Fit with some margin inside top area
-    const marginX = W * 0.06;
-    const marginY = topAreaHeight * 0.10;
-    let drawW = W - 2 * marginX;
-    let drawH = drawW / aspect;
-    if (drawH > topAreaHeight - 2 * marginY) {
-      drawH = topAreaHeight - 2 * marginY;
-      drawW = drawH * aspect;
-    }
-    const x = (W - drawW) / 2;
-    const y = (topAreaHeight - drawH) / 2;
-
-    ctx.drawImage(img, x, y, drawW, drawH);
+    img = await loadImage(imageUrl);
+    // Extract 3–5 dominant colors, we'll just pick 4 for now
+    palette = await extractPaletteFromImage(img, 4);
   }
 
+  // ==== TOP AREA: FULL-SIZE COVER ====
+  // Make the cover span the full width; Spotify covers are square,
+  // so height ~= width. We draw it at the top with no colored background.
+  let imageBottom = 0;
+  if (img) {
+    const aspect = img.width / img.height; // ~1
+    const drawW = W;
+    const drawH = drawW / aspect;
+    const x = 0;
+    const y = 0;
+    ctx.drawImage(img, x, y, drawW, drawH);
+    imageBottom = y + drawH;
+  } else {
+    imageBottom = H * 0.6; // fallback if no img, unlikely
+  }
+
+  // Small vertical gap between image and text area
+  const gapBelowImage = unitsPerInch * 0.4;
+  const textStartY = imageBottom + gapBelowImage;
+
   // ==== TEXT AREA (BOTTOM) ====
-  const bottomY = topAreaHeight;
   const paddingX = W * 0.06;
-  const baselineY = bottomY + unitsPerInch * 0.8; // first line of text
+  let cursorY = textStartY;
 
-  // Album/artist
+  // Album / artist
   const albumTitle = albumData.name;
-  const artistName = (albumData.artists || []).map(a => a.name).join(", ");
+  const artistName = (albumData.artists || [])
+    .map((a) => a.name)
+    .join(", ");
 
+  // Artist name (big, bold)
   ctx.fillStyle = "#000000";
-  ctx.font = `700 ${unitsPerInch * 0.45}px "Inter", system-ui, sans-serif`;
+  ctx.textAlign = "left";
   ctx.textBaseline = "alphabetic";
-  ctx.fillText(artistName, paddingX, baselineY);
+  ctx.font = `700 ${unitsPerInch * 0.45}px "Inter", system-ui, sans-serif`;
+  ctx.fillText(artistName, paddingX, cursorY);
+  cursorY += unitsPerInch * 0.5;
 
+  // Album title (smaller, lighter)
   ctx.font = `400 ${unitsPerInch * 0.32}px "Inter", system-ui, sans-serif`;
   ctx.fillStyle = "#444";
-  ctx.fillText(albumTitle, paddingX, baselineY + unitsPerInch * 0.5);
+  ctx.fillText(albumTitle, paddingX, cursorY);
 
-  // "THE THIRD ALBUM BY ..." style label on the right
+  // "ALBUM BY ..." label on the right, aligned roughly with artist line
   const rightLabel = `ALBUM BY ${artistName.toUpperCase()}`;
   ctx.font = `400 ${unitsPerInch * 0.18}px "Inter", system-ui, sans-serif`;
   ctx.textAlign = "right";
   ctx.fillStyle = "#555";
-  ctx.fillText(rightLabel, W - paddingX, baselineY + unitsPerInch * 0.1);
+  ctx.fillText(rightLabel, W - paddingX, textStartY + unitsPerInch * 0.1);
 
-  // horizontal bar with duration
-  const barTop = baselineY + unitsPerInch * 0.9;
-  const barHeight = unitsPerInch * 0.08;
+  // ==== COLOR BAR (PALETTE-BASED) ====
+  // Compute bar geometry
+  const barTop = cursorY + unitsPerInch * 0.6;
+  const barHeight = unitsPerInch * 0.12;
   const barWidth = W - 2 * paddingX;
   const barX = paddingX;
-  ctx.textAlign = "left";
 
-  // grey bar
-  ctx.fillStyle = "#d6d6d6";
-  ctx.fillRect(barX, barTop, barWidth, barHeight);
+  // Draw segmented bar: equal-length segments from dominant colors
+  const nSegments = palette.length;
+  const segmentWidth = barWidth / nSegments;
 
-  // colored "progress" bar (just fixed 2/3)
-  ctx.fillStyle = "#3268ff";
-  ctx.fillRect(barX, barTop, barWidth * 0.65, barHeight);
+  for (let i = 0; i < nSegments; i++) {
+    ctx.fillStyle = palette[i];
+    ctx.fillRect(barX + i * segmentWidth, barTop, segmentWidth, barHeight);
+  }
 
-  // Duration label on right of bar
-  const totalMs = albumData.tracks.items.reduce((sum, t) => sum + t.duration_ms, 0);
+  // Duration label to the right below the bar
+  const totalMs = albumData.tracks.items.reduce(
+    (sum, t) => sum + t.duration_ms,
+    0
+  );
   const totalSeconds = Math.round(totalMs / 1000);
   const minutes = Math.floor(totalSeconds / 60);
   const seconds = (totalSeconds % 60).toString().padStart(2, "0");
@@ -273,26 +283,32 @@ async function drawPosterForAlbum(albumData) {
   ctx.font = `400 ${unitsPerInch * 0.2}px "Inter", system-ui, sans-serif`;
   ctx.fillStyle = "#000";
   ctx.textAlign = "right";
-  ctx.fillText(durationLabel, barX + barWidth, barTop + barHeight + unitsPerInch * 0.4);
+  ctx.fillText(
+    durationLabel,
+    barX + barWidth,
+    barTop + barHeight + unitsPerInch * 0.5
+  );
+
+  // Advance cursor below the bar + duration
+  let trackStartY = barTop + barHeight + unitsPerInch * 0.9;
 
   // ==== TRACKLIST ====
-  const tracks = albumData.tracks.items.map(t => t.name);
-  const trackAreaTop = barTop + barHeight + unitsPerInch * 0.9;
+  const tracks = albumData.tracks.items.map((t) => t.name);
 
   ctx.textAlign = "left";
   ctx.fillStyle = "#000";
   ctx.font = `600 ${unitsPerInch * 0.22}px "Inter", system-ui, sans-serif`;
-  ctx.fillText("TRACKLIST", paddingX, trackAreaTop);
+  ctx.fillText("TRACKLIST", paddingX, trackStartY);
 
+  trackStartY += unitsPerInch * 0.5;
   ctx.font = `400 ${unitsPerInch * 0.18}px "Inter", system-ui, sans-serif`;
   ctx.fillStyle = "#333";
 
   const trackTextMaxWidth = W - 2 * paddingX;
   const lineSpacing = unitsPerInch * 0.3;
-  let trackY = trackAreaTop + unitsPerInch * 0.5;
+  let trackY = trackStartY;
 
   const separator = "  |  ";
-  // We'll try to pack several tracks per line like the reference.
   let currentLine = "";
 
   function flushLine() {
@@ -317,14 +333,25 @@ async function drawPosterForAlbum(albumData) {
 
   // ==== FOOTER (release date / label) ====
   const footerY = H - unitsPerInch * 0.8;
-  const releaseDate = albumData.release_date; // ISO string, may be yyyy or yyyy-mm-dd
+  const releaseDate = albumData.release_date;
   const label = albumData.label || "";
 
   ctx.font = `400 ${unitsPerInch * 0.18}px "Inter", system-ui, sans-serif`;
   ctx.fillStyle = "#777";
   ctx.textAlign = "left";
   ctx.fillText(`RELEASE DATE: ${releaseDate}`, paddingX, footerY);
-  ctx.fillText(`RECORD LABEL: ${label}`, paddingX, footerY + unitsPerInch * 0.3);
+  ctx.fillText(
+    `RECORD LABEL: ${label}`,
+    paddingX,
+    footerY + unitsPerInch * 0.3
+  );
+
+  ctx.textAlign = "right";
+  ctx.fillText(
+    "Generated with Album Poster Generator",
+    W - paddingX,
+    footerY + unitsPerInch * 0.3
+  );
 }
 
 function loadImage(url) {
@@ -337,6 +364,128 @@ function loadImage(url) {
   });
 }
 
+/**
+ * Extract a small palette of dominant colors from an image using
+ * a simple k-means clustering over RGB space.
+ *
+ * @param {HTMLImageElement} img
+ * @param {number} k - number of colors (3–5 recommended)
+ * @returns {Promise<string[]>} - array of CSS color strings
+ */
+async function extractPaletteFromImage(img, k = 4) {
+  // Downscale to keep it cheap
+  const sampleSize = 80; // 80x80 = 6400 pixels max
+  const offCanvas = document.createElement("canvas");
+  const offCtx = offCanvas.getContext("2d");
+
+  offCanvas.width = sampleSize;
+  offCanvas.height = sampleSize;
+
+  offCtx.drawImage(img, 0, 0, sampleSize, sampleSize);
+  const imageData = offCtx.getImageData(0, 0, sampleSize, sampleSize);
+  const data = imageData.data;
+
+  // Collect RGB samples
+  const pixels = [];
+  for (let i = 0; i < data.length; i += 4) {
+    const r = data[i];
+    const g = data[i + 1];
+    const b = data[i + 2];
+    const a = data[i + 3];
+    // Ignore fully transparent pixels
+    if (a < 128) continue;
+    pixels.push([r, g, b]);
+  }
+
+  if (pixels.length === 0) {
+    return ["#bbbbbb", "#888888", "#555555", "#222222"].slice(0, k);
+  }
+
+  // Initialize centers by random sampling
+  const centers = [];
+  for (let i = 0; i < k; i++) {
+    centers.push(pixels[Math.floor(Math.random() * pixels.length)].slice());
+  }
+
+  // k-means iterations
+  const maxIters = 8;
+  for (let iter = 0; iter < maxIters; iter++) {
+    const clusters = Array.from({ length: k }, () => []);
+    // Assign step
+    for (let p = 0; p < pixels.length; p++) {
+      const [r, g, b] = pixels[p];
+      let bestIdx = 0;
+      let bestDist = Infinity;
+      for (let c = 0; c < k; c++) {
+        const [cr, cg, cb] = centers[c];
+        const dr = r - cr;
+        const dg = g - cg;
+        const db = b - cb;
+        const dist = dr * dr + dg * dg + db * db;
+        if (dist < bestDist) {
+          bestDist = dist;
+          bestIdx = c;
+        }
+      }
+      clusters[bestIdx].push(pixels[p]);
+    }
+    // Update step
+    for (let c = 0; c < k; c++) {
+      const cluster = clusters[c];
+      if (cluster.length === 0) continue;
+      let sumR = 0,
+        sumG = 0,
+        sumB = 0;
+      for (let i = 0; i < cluster.length; i++) {
+        sumR += cluster[i][0];
+        sumG += cluster[i][1];
+        sumB += cluster[i][2];
+      }
+      centers[c][0] = Math.round(sumR / cluster.length);
+      centers[c][1] = Math.round(sumG / cluster.length);
+      centers[c][2] = Math.round(sumB / cluster.length);
+    }
+  }
+
+  // Rank centers by how many pixels they got (roughly)
+  // Re-run assignment just to count
+  const counts = new Array(k).fill(0);
+  for (let p = 0; p < pixels.length; p++) {
+    const [r, g, b] = pixels[p];
+    let bestIdx = 0;
+    let bestDist = Infinity;
+    for (let c = 0; c < k; c++) {
+      const [cr, cg, cb] = centers[c];
+      const dr = r - cr;
+      const dg = g - cg;
+      const db = b - cb;
+      const dist = dr * dr + dg * dg + db * db;
+      if (dist < bestDist) {
+        bestDist = dist;
+        bestIdx = c;
+      }
+    }
+    counts[bestIdx]++;
+  }
+
+  const indexed = centers.map((rgb, idx) => ({ rgb, count: counts[idx] }));
+  indexed.sort((a, b) => b.count - a.count);
+
+  // Convert to CSS colors, avoid super-near-white for visibility
+  const palette = indexed.map(({ rgb: [r, g, b] }) => {
+    // Slightly clamp extreme whites so they show up on white paper
+    const maxChannel = Math.max(r, g, b);
+    if (maxChannel > 245) {
+      const scale = 245 / maxChannel;
+      r = Math.round(r * scale);
+      g = Math.round(g * scale);
+      b = Math.round(b * scale);
+    }
+    return `rgb(${r}, ${g}, ${b})`;
+  });
+
+  return palette.slice(0, k);
+}
 // ====== EVENTS ======
 loginButton.addEventListener("click", (e) => {
   e.preventDefault();
