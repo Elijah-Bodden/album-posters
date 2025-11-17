@@ -1,7 +1,7 @@
 // ====== CONFIG ======
-const SPOTIFY_CLIENT_ID = "YOUR_SPOTIFY_CLIENT_ID_HERE";
+const SPOTIFY_CLIENT_ID = "9cf70d0696ac4e59af60645e76f90744";
 // When using GitHub Pages, set this to the *exact* HTTPS URL of index.html.
-const REDIRECT_URI = "https://YOUR_GITHUB_USERNAME.github.io/YOUR_REPO_NAME/";
+const REDIRECT_URI = "https://elijah-bodden.github.io/album-posters";
 
 // Poster physical size & DPI (controls output resolution)
 const POSTER_WIDTH_IN = 12;
