@@ -13,13 +13,13 @@ html, body {
 }
 
 .page {
-  max-width: 960px;
+  max-width: 1120px;
   margin: 0 auto;
   padding: 24px 16px 64px;
 }
 
 .header h1 {
-  font-size: 1.8rem;
+  font-size: 1.9rem;
   margin-bottom: 0.25rem;
 }
 
@@ -28,8 +28,42 @@ html, body {
   color: #ccc;
 }
 
-.controls {
+/* === TWO-COLUMN LAYOUT === */
+
+.layout {
   margin-top: 24px;
+  display: grid;
+  gap: 24px;
+}
+
+/* Desktop / large screens: two columns */
+@media (min-width: 900px) {
+  .layout {
+    grid-template-columns: minmax(0, 1.4fr) minmax(320px, 1fr);
+    align-items: flex-start;
+  }
+}
+
+/* Mobile: single column, preview first */
+@media (max-width: 899.98px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+.preview-column,
+.controls-column {
+  min-width: 0; /* important for flex/grid content with long text */
+}
+
+.section-title {
+  font-size: 1.1rem;
+  margin: 0 0 12px;
+}
+
+/* === CONTROLS / RIGHT COLUMN === */
+
+.controls {
   padding: 16px;
   border-radius: 10px;
   background: #111;
@@ -73,6 +107,23 @@ html, body {
   border-color: #4da3ff;
 }
 
+.info {
+  margin-top: 20px;
+  padding: 14px 16px;
+  border-radius: 10px;
+  background: #0b0b0b;
+  border: 1px dashed #333;
+}
+
+.info ol {
+  padding-left: 20px;
+  margin: 0;
+  color: #ccc;
+  font-size: 0.9rem;
+}
+
+/* === BUTTONS === */
+
 .button {
   cursor: pointer;
   border: none;
@@ -81,7 +132,8 @@ html, body {
   font-size: 0.95rem;
   background: #333;
   color: #f5f5f5;
-  transition: background 0.15s ease, transform 0.05s ease;
+  transition: background 0.15s ease, transform 0.05s ease, box-shadow 0.15s ease;
+  white-space: nowrap;
 }
 
 .button.primary {
@@ -91,43 +143,4 @@ html, body {
 }
 
 .button:hover {
-  transform: translateY(-1px);
-  background: #555;
-}
-
-.button.primary:hover {
-  background: #66b2ff;
-}
-
-.button:disabled {
-  opacity: 0.45;
-  cursor: default;
-  transform: none;
-}
-
-.preview {
-  margin-top: 32px;
-}
-
-.preview h2 {
-  font-size: 1.3rem;
-  margin-bottom: 12px;
-}
-
-#posterCanvas {
-  width: 300px;   /* on-screen preview size */
-  height: 450px;
-  border-radius: 8px;
-  display: block;
-  background: #fff;
-}
-
-.preview .button {
-  margin-top: 14px;
-}
-
-.hint {
-  margin-top: 8px;
-  font-size: 0.85rem;
-  color: #aaa;
-}
+  transform: translateY
