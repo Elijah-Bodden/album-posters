@@ -528,7 +528,7 @@ async function drawPosterCommon(options) {
   }
 
   // ==== FOOTER ====
-  if (!singleSong) {
+  if (isAlbum) {
   const footerY = H - unitsPerInch * 0.8;
   ctx.font = `400 ${unitsPerInch * 0.18}px "Inter", system-ui, sans-serif`;
   ctx.fillStyle = "#777";
