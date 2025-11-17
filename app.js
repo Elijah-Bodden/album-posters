@@ -4,15 +4,12 @@ const REDIRECT_URI = "https://elijah-bodden.github.io/album-posters/";
 
 // DPI used for printing
 const DPI = 300;
-
-// Modes
-const MODE_ALBUM = "album";
-const MODE_SONG = "song";
-let currentMode = MODE_ALBUM;
+// Modes: album, song
+let currentMode = "album";
 
 // Poster sizes (inches)
 function getPosterSizeIn() {
-  if (currentMode === MODE_SONG) {
+  if (currentMode === "song") {
     return { width: 8.5, height: 11 }; // song mode
   }
   return { width: 12, height: 18 }; // album mode
@@ -604,7 +601,7 @@ modeRadios.forEach((radio) => {
     currentMode = radio.value;
     updateCanvasSizeForMode();
     updateDownloadLabel();
-    if (currentMode === MODE_ALBUM) {
+    if (currentMode === "album") {
       urlLabel.textContent = "Spotify album URL";
       albumUrlInput.placeholder = "https://open.spotify.com/album/...";
     } else {
@@ -625,7 +622,7 @@ albumForm.addEventListener("submit", async (e) => {
   try {
     downloadButton.disabled = true;
 
-    if (currentMode === MODE_ALBUM) {
+    if (currentMode === "album") {
       const albumId = extractAlbumIdFromUrl(url);
       if (!albumId) {
         alert("Couldn't parse album ID from that URL.");
