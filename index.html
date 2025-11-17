@@ -16,16 +16,19 @@
       <div class="preview-inner">
         <canvas id="posterCanvas"></canvas>
         <button id="downloadButton" class="button primary" disabled>
-          Download PNG (12×18" @ 300 DPI)
+          Download PNG
         </button>
+        <p class="hint">
+          Upload the PNG to a print shop for full-bleed printing.
+        </p>
       </div>
     </section>
 
     <!-- RIGHT: controls / info -->
     <section class="control-pane">
       <header class="header">
-        <h1>Album Poster Generator</h1>
-        <p>Create a 12×18&quot; poster from a Spotify album link.</p>
+        <h1>Spotify Poster Generator</h1>
+        <p>Create printable posters from albums or single songs.</p>
       </header>
 
       <section class="controls">
@@ -34,8 +37,20 @@
           <span id="authStatus" class="auth-status"></span>
         </div>
 
+        <div class="mode-toggle">
+          <span class="mode-label">Mode:</span>
+          <label>
+            <input type="radio" name="mode" value="album" checked />
+            Album (12×18")
+          </label>
+          <label>
+            <input type="radio" name="mode" value="song" />
+            Song (8.5×11")
+          </label>
+        </div>
+
         <form id="albumForm" class="album-form">
-          <label for="albumUrl">Spotify album URL</label>
+          <label for="albumUrl" id="urlLabel">Spotify album URL</label>
           <input
             id="albumUrl"
             type="url"
