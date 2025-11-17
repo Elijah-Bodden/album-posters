@@ -447,7 +447,7 @@ async function drawPosterCommon(options) {
     ctx.font = `400 ${unitsPerInch * 0.18}px "Inter", system-ui, sans-serif`;
     ctx.textAlign = "right";
     ctx.fillStyle = "#555";
-    ctx.fillText("SONG BY " + artistName.toUppercase(), W - paddingX, imageBottom + gapBelowImage + unitsPerInch * 0.1);
+    ctx.fillText("SONG BY " + artistName.toUpperCase(), W - paddingX, imageBottom + gapBelowImage + unitsPerInch * 0.1);
 
     ctx.font = `400 ${unitsPerInch * 0.18}px "Inter", system-ui, sans-serif`;
     ctx.textAlign = "right";
