@@ -584,7 +584,7 @@ async function drawSongPoster(trackData) {
     songOrAlbumName,
     artistName,
     imageUrl,
-    totalDurationMs: trackData.duration,
+    totalDurationMs: trackData.duration_ms,
     releaseDate,
     label,
     tracksForTracklist: null,
