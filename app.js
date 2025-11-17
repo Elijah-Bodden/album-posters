@@ -348,6 +348,7 @@ async function drawPosterCommon(options) {
     totalDurationMs,
     releaseDate,
     label,
+    singleSong,
     tracksForTracklist, // array of track names, or null for "no tracklist"
   } = options;
 
@@ -490,6 +491,7 @@ async function drawPosterCommon(options) {
   }
 
   // ==== FOOTER ====
+  if (singleSong) {
   const footerY = H - unitsPerInch * 0.8;
   ctx.font = `400 ${unitsPerInch * 0.18}px "Inter", system-ui, sans-serif`;
   ctx.fillStyle = "#777";
@@ -500,7 +502,7 @@ async function drawPosterCommon(options) {
     paddingX,
     footerY + unitsPerInch * 0.3
   );
-}
+}}
 // Album-specific wrapper
 async function drawAlbumPoster(albumData) {
   const imageUrl =
@@ -524,6 +526,7 @@ async function drawAlbumPoster(albumData) {
     totalDurationMs,
     releaseDate,
     label,
+    singleSong: false,
     tracksForTracklist: tracks,
   });
 }
@@ -548,6 +551,7 @@ async function drawSongPoster(trackData) {
     totalDurationMs: trackData.duration_ms,
     releaseDate,
     label,
+    singleSong: true,
     tracksForTracklist: null, // <-- truncate above tracklist
   });
 }
