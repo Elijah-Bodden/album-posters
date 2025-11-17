@@ -236,7 +236,7 @@ if (img) {
   const textStartY = imageBottom + gapBelowImage;
 
   // ==== TEXT AREA (BOTTOM) ====
-  const paddingX = W * 0.06;
+  const paddingX = W * 0.03;
   let cursorY = textStartY;
 
   // Album / artist
