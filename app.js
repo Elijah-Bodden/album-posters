@@ -484,44 +484,44 @@ async function drawPosterCommon(options) {
   //   barTop + barHeight + unitsPerInch * 0.5
   // );
   // }
-  // let trackStartY = barTop + barHeight + unitsPerInch * 0.9;
+  let trackStartY = barTop + barHeight + unitsPerInch * 0.9;
 
-  // // ==== TRACKLIST (only if we have tracks) ====
-  // if (tracksForTracklist && tracksForTracklist.length > 0) {
-  //   ctx.textAlign = "left";
-  //   ctx.fillStyle = "#000";
-  //   ctx.font = `600 ${unitsPerInch * 0.22}px "Inter", system-ui, sans-serif`;
-  //   ctx.fillText("TRACKLIST", paddingX, trackStartY);
+  // ==== TRACKLIST (only if we have tracks) ====
+  if (tracksForTracklist && tracksForTracklist.length > 0) {
+    ctx.textAlign = "left";
+    ctx.fillStyle = "#000";
+    ctx.font = `600 ${unitsPerInch * 0.22}px "Inter", system-ui, sans-serif`;
+    ctx.fillText("TRACKLIST", paddingX, trackStartY);
 
-  //   trackStartY += unitsPerInch * 0.5;
-  //   ctx.font = `400 ${unitsPerInch * 0.18}px "Inter", system-ui, sans-serif`;
-  //   ctx.fillStyle = "#333";
+    trackStartY += unitsPerInch * 0.5;
+    ctx.font = `400 ${unitsPerInch * 0.18}px "Inter", system-ui, sans-serif`;
+    ctx.fillStyle = "#333";
 
-  //   const trackTextMaxWidth = W - 2 * paddingX;
-  //   const lineSpacing = unitsPerInch * 0.3;
-  //   let trackY = trackStartY;
+    const trackTextMaxWidth = W - 2 * paddingX;
+    const lineSpacing = unitsPerInch * 0.3;
+    let trackY = trackStartY;
 
-  //   const separator = "  |  ";
-  //   let currentLine = "";
+    const separator = "  |  ";
+    let currentLine = "";
 
-  //   function flushLine() {
-  //     if (!currentLine) return;
-  //     ctx.fillText(currentLine, paddingX, trackY);
-  //     trackY += lineSpacing;
-  //     currentLine = "";
-  //   }
+    function flushLine() {
+      if (!currentLine) return;
+      ctx.fillText(currentLine, paddingX, trackY);
+      trackY += lineSpacing;
+      currentLine = "";
+    }
 
-  //   for (let i = 0; i < tracksForTracklist.length; i++) {
-  //     const t = tracksForTracklist[i];
-  //     const nextPart = currentLine ? currentLine + separator + t : t;
-  //     const width = ctx.measureText(nextPart).width;
-  //     if (width > trackTextMaxWidth && currentLine) {
-  //       flushLine();
-  //       currentLine = t;
-  //     } else {
-  //       currentLine = nextPart;
-  //     }
-  //   }
+    for (let i = 0; i < tracksForTracklist.length; i++) {
+      const t = tracksForTracklist[i];
+      const nextPart = currentLine ? currentLine + separator + t : t;
+      const width = ctx.measureText(nextPart).width;
+      if (width > trackTextMaxWidth && currentLine) {
+        flushLine();
+        currentLine = t;
+      } else {
+        currentLine = nextPart;
+      }
+    }
     flushLine();
   }
 
