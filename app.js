@@ -546,7 +546,7 @@ async function drawAlbumPoster(albumData) {
     (albumData.images && albumData.images[0] && albumData.images[0].url) || null;
   const artistName = (albumData.artists || []).map((a) => a.name).join(", ");
   const songOrAlbumName = albumData.name;
-  const rightLabel = `ALBUM BY ${mainTitle.toUpperCase()}`;
+  const rightLabel = `ALBUM BY ${artistName.toUpperCase()}`;
   const totalDurationMs = albumData.tracks.items.reduce(
     (sum, t) => sum + t.duration_ms,
     0
