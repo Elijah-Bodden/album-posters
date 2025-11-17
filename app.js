@@ -544,8 +544,8 @@ async function drawPosterCommon(options) {
 async function drawAlbumPoster(albumData) {
   const imageUrl =
     (albumData.images && albumData.images[0] && albumData.images[0].url) || null;
-  const mainTitle = (albumData.artists || []).map((a) => a.name).join(", ");
-  const subTitle = albumData.name;
+  const artistName = (albumData.artists || []).map((a) => a.name).join(", ");
+  const songOrAlbumName = albumData.name;
   const rightLabel = `ALBUM BY ${mainTitle.toUpperCase()}`;
   const totalDurationMs = albumData.tracks.items.reduce(
     (sum, t) => sum + t.duration_ms,
@@ -555,15 +555,15 @@ async function drawAlbumPoster(albumData) {
   const releaseDate = albumData.release_date;
   const label = albumData.label || "";
 
+
   await drawPosterCommon({
-    mainTitle,
-    subTitle,
-    rightLabel,
+    isAlbum: true,
+    songOrAlbumName,
+    artistName,
     imageUrl,
     totalDurationMs,
     releaseDate,
     label,
-    singleSong: false,
     tracksForTracklist: tracks,
   });
 }
@@ -574,22 +574,22 @@ async function drawSongPoster(trackData) {
   const imageUrl =
     (album.images && album.images[0] && album.images[0].url) || null;
 
-  const mainTitle = trackData.name;
-  const subTitle = (trackData.artists || []).map((a) => a.name).join(", ");
+  const songOrAlbumName = trackData.name;
+  const artistName = (trackData.artists || []).map((a) => a.name).join(", ");
   const rightLabel = ``;
   const releaseDate = album.release_date;
   const label = "";
+  
 
   await drawPosterCommon({
-    mainTitle,
-    subTitle,
-    rightLabel,
+    isAlbum: false,
+    songOrAlbumName,
+    artistName,
     imageUrl,
-    totalDurationMs: trackData.duration_ms,
+    totalDurationMs: trackData.duration,
     releaseDate,
     label,
-    singleSong: true,
-    tracksForTracklist: null, // <-- truncate above tracklist
+    tracksForTracklist: null,
   });
 }
 
