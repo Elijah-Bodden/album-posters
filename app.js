@@ -415,11 +415,12 @@ async function drawPosterCommon(options) {
   ctx.fillStyle = "#444";
   ctx.fillText(subTitle, paddingX, cursorY);
 
+  if (!singleSong) {
   ctx.font = `400 ${unitsPerInch * 0.18}px "Inter", system-ui, sans-serif`;
   ctx.textAlign = "right";
   ctx.fillStyle = "#555";
   ctx.fillText(rightLabel, W - paddingX, imageBottom + gapBelowImage + unitsPerInch * 0.1);
-
+  }
   // ==== COLOR BAR ====
   const barTop = cursorY + unitsPerInch * 0.6;
   const barHeight = unitsPerInch * 0.12;
@@ -440,6 +441,14 @@ async function drawPosterCommon(options) {
   const seconds = (totalSeconds % 60).toString().padStart(2, "0");
   const durationLabel = `${minutes}:${seconds}`;
 
+  if (singleSong) {
+  ctx.font = `400 ${unitsPerInch * 0.18}px "Inter", system-ui, sans-serif`;
+  ctx.textAlign = "right";
+  ctx.fillStyle = "#555";
+  ctx.fillText(durationLabel, W - paddingX, imageBottom + gapBelowImage + unitsPerInch * 0.1);
+  }
+  else
+  {
   ctx.font = `400 ${unitsPerInch * 0.2}px "Inter", system-ui, sans-serif`;
   ctx.fillStyle = "#000";
   ctx.textAlign = "right";
@@ -448,7 +457,7 @@ async function drawPosterCommon(options) {
     barX + barWidth,
     barTop + barHeight + unitsPerInch * 0.5
   );
-
+  }
   let trackStartY = barTop + barHeight + unitsPerInch * 0.9;
 
   // ==== TRACKLIST (only if we have tracks) ====
