@@ -668,6 +668,11 @@ async function drawPosterCommon(options) {
         ctx.fillStyle = "#555";
         ctx.font = `400 ${unitsPerInch * 0.18}px "Inter", system-ui, sans-serif`;
         ctx.fillText(
+          "SONG BY " + artistName.toUpperCase(),
+          W - paddingX,
+          imageBottom + gapBelowImage * 0.88
+        );
+        ctx.fillText(
           durationLabel,
           W - paddingX,
           imageBottom + gapBelowImage
@@ -677,7 +682,16 @@ async function drawPosterCommon(options) {
       ctx.textAlign = "right";
       ctx.fillStyle = "#555";
       ctx.font = `400 ${unitsPerInch * 0.18}px "Inter", system-ui, sans-serif`;
-      ctx.fillText(durationLabel, W - paddingX, imageBottom + gapBelowImage);
+        ctx.fillText(
+          "SONG BY " + artistName.toUpperCase(),
+          W - paddingX,
+          imageBottom + gapBelowImage * 0.88
+        );
+        ctx.fillText(
+          durationLabel,
+          W - paddingX,
+          imageBottom + gapBelowImage
+        );
     }
   }
 
