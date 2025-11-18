@@ -1,5 +1,4 @@
-const SPOTIFY_CLIENT_ID = "9cf70d0696ac4e59af60645e76f90744";
-const REDIRECT_URI = "https://elijah-bodden.github.io/album-posters/";
+const BACKEND_BASE_URL = "https://spotify-poster-backend.elijahbodden.workers.dev/";
 
 const DPI = 300;
 // Modes: album, song
@@ -193,20 +192,18 @@ function extractTrackIdFromUrl(rawUrl) {
 }
 
 async function fetchAlbum(albumId) {
-  if (!accessToken) throw new Error("No access token");
-  const res = await fetch(`https://api.spotify.com/v1/albums/${albumId}`, {
-    headers: { Authorization: `Bearer ${accessToken}` },
-  });
-  if (!res.ok) throw new Error("Failed to fetch album: " + res.status);
+  const res = await fetch(`${BACKEND_BASE_URL}/album/${albumId}`);
+  if (!res.ok) {
+    throw new Error("Failed to fetch album: " + res.status);
+  }
   return await res.json();
 }
 
 async function fetchTrack(trackId) {
-  if (!accessToken) throw new Error("No access token");
-  const res = await fetch(`https://api.spotify.com/v1/tracks/${trackId}`, {
-    headers: { Authorization: `Bearer ${accessToken}` },
-  });
-  if (!res.ok) throw new Error("Failed to fetch track: " + res.status);
+  const res = await fetch(`${BACKEND_BASE_URL}/track/${trackId}`);
+  if (!res.ok) {
+    throw new Error("Failed to fetch track: " + res.status);
+  }
   return await res.json();
 }
 
@@ -860,17 +857,10 @@ if (showCodeCheckbox && codeDescriptionWrapper) {
 
 albumForm.addEventListener("submit", async (e) => {
   e.preventDefault();
-  if (!accessToken) {
-    alert("Connect with Spotify first.")
-    authStatus.textContent = "Connect with Spotify first.";
-    return;
-  }
 
   const url = albumUrlInput.value.trim();
   const showSpotifyCode = !!(showCodeCheckbox && showCodeCheckbox.checked);
-  const codeDescription = (codeDescriptionInput?.value || "")
-    .trim()
-    .slice(0, 60);
+  const codeDescription = (codeDescriptionInput?.value || "").trim().slice(0, 60);
 
   try {
     downloadButton.disabled = true;
