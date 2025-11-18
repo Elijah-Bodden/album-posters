@@ -766,7 +766,7 @@ async function drawPosterCommon(options) {
   // ==== TAGLINE (bottom-right) ====
   ctx.textAlign = "right";
   ctx.font = `400 ${unitsPerInch * 0.14}px "Inter", system-ui, sans-serif`;
-  ctx.fillStyle = "#bbb";
+  ctx.fillStyle = "#ddd";
   ctx.fillText(
     "https://elijah-bodden.github.io/album-posters/",
     W - unitsPerInch * 0.1,
