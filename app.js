@@ -346,6 +346,7 @@ async function drawPosterCommon(options) {
     releaseDate,
     label,
     tracksForTracklist, // array of track names, or null for "no tracklist"
+    spotifyUri,
   } = options;
 
   updateCanvasSizeForMode();
@@ -591,6 +592,7 @@ async function drawAlbumPoster(albumData) {
     releaseDate,
     label,
     tracksForTracklist: tracks,
+    spotifyUri: null
   });
 }
 
@@ -616,7 +618,7 @@ async function drawSongPoster(trackData) {
     releaseDate,
     label,
     tracksForTracklist: null,
-    spotifyUri: trackData.uri,   // <--- THIS is the key bit
+    spotifyUri: trackData.uri,
   });
 }
 
