@@ -559,9 +559,19 @@ async function drawPosterCommon(options) {
           ctx.font = `400 ${unitsPerInch * 0.18}px "Inter", system-ui, sans-serif`;
           ctx.textAlign = "center";
           ctx.fillStyle = "#555";
+
           const centerX = drawX + drawW / 2;
-          const textY = drawY + drawH + unitsPerInch * 0.25;
-          ctx.fillText(codeDescription, centerX, textY);
+          const firstLineY = drawY + drawH + unitsPerInch * 0.25;
+          const maxTextWidth = drawW;                    // don’t exceed code width
+          const lineHeight = unitsPerInch * 0.22;        // spacing between lines
+
+          drawWrappedCenteredText(
+            codeDescription,
+            centerX,
+            firstLineY,
+            maxTextWidth,
+            lineHeight
+          );
         }
       } catch (e) {
         console.error("Failed to load Spotify code image", e);
