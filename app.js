@@ -369,10 +369,11 @@ async function drawPosterCommon(options) {
   const scaleX = posterCanvas.width / W;
   const scaleY = posterCanvas.height / H;
   ctx.scale(scaleX, scaleY);
-  
+
+  // helper: wrap description under Spotify code (you already had this)
   function drawWrappedCenteredText(text, centerX, firstLineY, maxWidth, lineHeight) {
     if (!text) return;
-    text = '\"' + text + '\"'
+    text = '"' + text + '"';
     const words = text.split(/\s+/).filter(Boolean);
     if (words.length === 0) return;
 
@@ -393,6 +394,59 @@ async function drawPosterCommon(options) {
 
     if (line) {
       ctx.fillText(line, centerX, y);
+    }
+  }
+
+  // NEW helper: draw title with optional second line, return y for artist baseline
+  function drawTitleWithOptionalWrap(title, startX, startY, maxWidthForWrap) {
+    const titleFont = `700 ${unitsPerInch * 0.45}px "Inter", system-ui, sans-serif`;
+    const lineSpacing = unitsPerInch * 0.5; // same spacing you used before
+
+    ctx.fillStyle = "#000000";
+    ctx.textAlign = "left";
+    ctx.textBaseline = "alphabetic";
+    ctx.font = titleFont;
+
+    const fullWidth = ctx.measureText(title).width;
+
+    // If no max width or it already fits, just draw one line like before
+    if (!maxWidthForWrap || fullWidth <= maxWidthForWrap) {
+      ctx.fillText(title, startX, startY);
+      return startY + lineSpacing; // y-position for artist
+    }
+
+    const words = title.split(/\s+/);
+    let line1 = "";
+    let splitIndex = words.length;
+
+    // Build first line up to max width
+    for (let i = 0; i < words.length; i++) {
+      const test = line1 ? line1 + " " + words[i] : words[i];
+      if (ctx.measureText(test).width <= maxWidthForWrap) {
+        line1 = test;
+      } else {
+        splitIndex = i;
+        break;
+      }
+    }
+
+    if (!line1) {
+      // Extremely long first word – fall back to one line
+      ctx.fillText(title, startX, startY);
+      return startY + lineSpacing;
+    }
+
+    const line2 = words.slice(splitIndex).join(" ");
+
+    ctx.fillText(line1, startX, startY);
+
+    if (line2) {
+      // Second line directly under the first
+      const secondY = startY + lineSpacing;
+      ctx.fillText(line2, startX, secondY);
+      return secondY + lineSpacing; // artist baseline
+    } else {
+      return startY + lineSpacing; // only one line used
     }
   }
 
@@ -447,20 +501,30 @@ async function drawPosterCommon(options) {
   const seconds = (totalSeconds % 60).toString().padStart(2, "0");
   const durationLabel = `${minutes}:${seconds}`;
 
+  // Precompute a conservative max width for the title when code is present
+  const titleMaxWidthWhenCode =
+    spotifyUri && showSpotifyCode
+      ? W - paddingX - (spotifyCodeMaxWidth + unitsPerInch * 0.5) // little gap from code
+      : null;
+
   // ==== TITLE / ARTIST / TOP-RIGHT SECTION ====
   if (isAlbum) {
-    ctx.fillStyle = "#000000";
-    ctx.textAlign = "left";
-    ctx.textBaseline = "alphabetic";
-    ctx.font = `700 ${unitsPerInch * 0.45}px "Inter", system-ui, sans-serif`;
-    ctx.fillText(songOrAlbumName, paddingX, cursorY);
-    cursorY += unitsPerInch * 0.5;
+    // Title (with possible wrap)
+    cursorY = drawTitleWithOptionalWrap(
+      songOrAlbumName,
+      paddingX,
+      cursorY,
+      titleMaxWidthWhenCode
+    );
 
+    // Artist (same as before)
     ctx.font = `400 ${unitsPerInch * 0.32}px "Inter", system-ui, sans-serif`;
     ctx.fillStyle = "#444";
+    ctx.textAlign = "left";
     ctx.fillText(artistName, paddingX, cursorY);
 
-        if (spotifyUri && showSpotifyCode) {
+    // Right-hand: ALBUM BY or Spotify code
+    if (spotifyUri && showSpotifyCode) {
       const codeUrl = `https://scannables.scdn.co/uri/plain/png/FFFFFF/black/640/${encodeURIComponent(
         spotifyUri
       )}`;
@@ -489,8 +553,8 @@ async function drawPosterCommon(options) {
 
           const centerX = drawX + drawW / 2;
           const firstLineY = drawY + drawH + unitsPerInch * 0.1;
-          const maxTextWidth = drawW;                    // don’t exceed code width
-          const lineHeight = unitsPerInch * 0.22;        // spacing between lines
+          const maxTextWidth = drawW;
+          const lineHeight = unitsPerInch * 0.22;
 
           drawWrappedCenteredText(
             codeDescription,
@@ -512,25 +576,30 @@ async function drawPosterCommon(options) {
         );
       }
     } else {
-    ctx.font = `400 ${unitsPerInch * 0.18}px "Inter", system-ui, sans-serif`;
-    ctx.textAlign = "right";
-    ctx.fillStyle = "#555";
-    ctx.fillText(
-      "ALBUM BY " + artistName.toUpperCase(),
-      W - paddingX,
-      imageBottom + gapBelowImage + unitsPerInch * 0.1
-    );
+      ctx.font = `400 ${unitsPerInch * 0.18}px "Inter", system-ui, sans-serif`;
+      ctx.textAlign = "right";
+      ctx.fillStyle = "#555";
+      ctx.fillText(
+        "ALBUM BY " + artistName.toUpperCase(),
+        W - paddingX,
+        imageBottom + gapBelowImage + unitsPerInch * 0.1
+      );
     }
-    } else {
-    ctx.fillStyle = "#000000";
-    ctx.textAlign = "left";
-    ctx.textBaseline = "alphabetic";
-    ctx.font = `700 ${unitsPerInch * 0.45}px "Inter", system-ui, sans-serif`;
-    ctx.fillText(songOrAlbumName, paddingX, cursorY);
-    cursorY += unitsPerInch * 0.5;
+  } else {
+    // SONG VERSION
 
+    // Title (with possible wrap)
+    cursorY = drawTitleWithOptionalWrap(
+      songOrAlbumName,
+      paddingX,
+      cursorY,
+      titleMaxWidthWhenCode
+    );
+
+    // Artist
     ctx.font = `400 ${unitsPerInch * 0.32}px "Inter", system-ui, sans-serif`;
     ctx.fillStyle = "#444";
+    ctx.textAlign = "left";
     ctx.fillText(artistName, paddingX, cursorY);
 
     // Right-hand area for SONG: code vs duration
@@ -563,8 +632,8 @@ async function drawPosterCommon(options) {
 
           const centerX = drawX + drawW / 2;
           const firstLineY = drawY + drawH + unitsPerInch * 0.1;
-          const maxTextWidth = drawW;                    // don’t exceed code width
-          const lineHeight = unitsPerInch * 0.22;        // spacing between lines
+          const maxTextWidth = drawW;
+          const lineHeight = unitsPerInch * 0.22;
 
           drawWrappedCenteredText(
             codeDescription,
@@ -585,16 +654,12 @@ async function drawPosterCommon(options) {
           imageBottom + gapBelowImage
         );
       }
+    } else {
+      ctx.textAlign = "right";
+      ctx.fillStyle = "#555";
+      ctx.font = `400 ${unitsPerInch * 0.18}px "Inter", system-ui, sans-serif`;
+      ctx.fillText(durationLabel, W - paddingX, imageBottom + gapBelowImage);
     }
-    // Release date text (left side)
-    // ctx.textAlign = "left";
-    // ctx.font = `400 ${unitsPerInch * 0.18}px "Inter", system-ui, sans-serif`;
-    // ctx.fillStyle = "#555";
-    // ctx.fillText(
-    //   `RELEASE DATE: ${releaseDate}`,
-    //   paddingX,
-    //   gapBelowImage + unitsPerInch * 0.4
-    // );
   }
 
   // ==== COLOR BAR ====
