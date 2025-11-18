@@ -585,15 +585,7 @@ async function drawPosterCommon(options) {
           imageBottom + gapBelowImage
         );
       }
-    } else {
-      // ctx.textAlign = "right";
-      // ctx.fillStyle = "#555";
-      // ctx.font = `400 ${unitsPerInch * 0.18}px "Inter", system-ui, sans-serif`;
-      // ctx.fillText(durationLabel, W - paddingX, imageBottom + gapBelowImage);
-      // ctx.fillText("SONG BY " + artistName, W - paddingX, imageBottom + gapBelowImage + unitsPerInch * 0.2);
-
     }
-
     // Release date text (left side)
     // ctx.textAlign = "left";
     // ctx.font = `400 ${unitsPerInch * 0.18}px "Inter", system-ui, sans-serif`;
@@ -675,7 +667,7 @@ async function drawPosterCommon(options) {
 
   // ==== TAGLINE (bottom-right) ====
   ctx.textAlign = "right";
-  ctx.font = `400 ${unitsPerInch * 0.14}px "Inter", system-ui, sans-serif`;
+  ctx.font = `400 ${unitsPerInch * 0.18}px "Inter", system-ui, sans-serif`;
   ctx.fillStyle = "#999";
   ctx.fillText(
     "Made with my chopped ass poster generator",
