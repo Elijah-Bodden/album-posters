@@ -372,7 +372,7 @@ async function drawPosterCommon(options) {
   
   function drawWrappedCenteredText(text, centerX, firstLineY, maxWidth, lineHeight) {
     if (!text) return;
-    text = \" + text + \"
+    text = '\"' + text + '\"'
     const words = text.split(/\s+/).filter(Boolean);
     if (words.length === 0) return;
 
