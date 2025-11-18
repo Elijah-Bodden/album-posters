@@ -652,7 +652,7 @@ async function drawPosterCommon(options) {
       songOrAlbumName,
       paddingX,
       cursorY,
-      titleMaxWidthWhenCode ?? ("SONG BY " + artistName.toUpperCase()).width
+      titleMaxWidthWhenCode ?? ctx.measureText("SONG BY " + artistName.toUpperCase()).width
     );
     // Artist
     ctx.font = `400 ${unitsPerInch * 0.32}px "Inter", system-ui, sans-serif`;
@@ -733,7 +733,7 @@ async function drawPosterCommon(options) {
   // ==== TAGLINE (bottom-right) ====
   ctx.textAlign = "right";
   ctx.font = `400 ${unitsPerInch * 0.14}px "Inter", system-ui, sans-serif`;
-  ctx.fillStyle = "#ddd";
+  ctx.fillStyle = "#bbb";
   ctx.fillText(
     "https://elijah-bodden.github.io/album-posters/",
     W - unitsPerInch * 0.15,
