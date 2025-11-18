@@ -883,6 +883,3 @@ downloadButton.addEventListener("click", () => {
     1.0
   );
 });
-
-// ====== BOOTSTRAP ======
-initAuth();
