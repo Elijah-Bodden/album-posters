@@ -1,4 +1,3 @@
-// ====== CONFIG ======
 const SPOTIFY_CLIENT_ID = "9cf70d0696ac4e59af60645e76f90744";
 const REDIRECT_URI = "https://elijah-bodden.github.io/album-posters/";
 
