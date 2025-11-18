@@ -343,6 +343,7 @@ async function extractPaletteFromImage(img, k = 4) {
 }
 
 // ====== CORE DRAW (SHARED LAYOUT) ======
+// ====== CORE DRAW (SHARED LAYOUT) ======
 async function drawPosterCommon(options) {
   const {
     isAlbum,
@@ -370,7 +371,7 @@ async function drawPosterCommon(options) {
   const scaleY = posterCanvas.height / H;
   ctx.scale(scaleX, scaleY);
 
-  // helper: wrap description under Spotify code (you already had this)
+  // helper: wrap description under Spotify code
   function drawWrappedCenteredText(text, centerX, firstLineY, maxWidth, lineHeight) {
     if (!text) return;
     text = '"' + text + '"';
@@ -397,29 +398,40 @@ async function drawPosterCommon(options) {
     }
   }
 
-  // NEW helper: draw title with optional second line, return y for artist baseline
+  // NEW helper: draw title with optional wrap + smaller font when wrapping.
+  // Returns the y-position to use for the artist baseline, but keeps
+  // the total block height constant so the rest of the layout doesn't move.
   function drawTitleWithOptionalWrap(title, startX, startY, maxWidthForWrap) {
-    const titleFont = `700 ${unitsPerInch * 0.45}px "Inter", system-ui, sans-serif`;
-    const lineSpacing = unitsPerInch * 0.5; // same spacing you used before
+    const baseFontSize = unitsPerInch * 0.45;   // original title size
+    const wrapFontSize = unitsPerInch * 0.38;   // slightly smaller when wrapping
+    const titleBlockHeight = unitsPerInch * 0.5; // same vertical band as before
 
     ctx.fillStyle = "#000000";
     ctx.textAlign = "left";
     ctx.textBaseline = "alphabetic";
-    ctx.font = titleFont;
 
-    const fullWidth = ctx.measureText(title).width;
+    // First, try with base size and see if it fits.
+    ctx.font = `700 ${baseFontSize}px "Inter", system-ui, sans-serif`;
 
-    // If no max width or it already fits, just draw one line like before
-    if (!maxWidthForWrap || fullWidth <= maxWidthForWrap) {
+    if (!maxWidthForWrap) {
+      // No code on the right: just draw one line at full size.
       ctx.fillText(title, startX, startY);
-      return startY + lineSpacing; // y-position for artist
+      return startY + titleBlockHeight;
     }
 
+    const fullWidth = ctx.measureText(title).width;
+    if (fullWidth <= maxWidthForWrap) {
+      // Fits: same as original behaviour.
+      ctx.fillText(title, startX, startY);
+      return startY + titleBlockHeight;
+    }
+
+    // Needs wrapping → use smaller font and up to two lines.
+    ctx.font = `700 ${wrapFontSize}px "Inter", system-ui, sans-serif`;
     const words = title.split(/\s+/);
     let line1 = "";
     let splitIndex = words.length;
 
-    // Build first line up to max width
     for (let i = 0; i < words.length; i++) {
       const test = line1 ? line1 + " " + words[i] : words[i];
       if (ctx.measureText(test).width <= maxWidthForWrap) {
@@ -431,23 +443,30 @@ async function drawPosterCommon(options) {
     }
 
     if (!line1) {
-      // Extremely long first word – fall back to one line
+      // Single gigantic word; fall back to one line with smaller font.
       ctx.fillText(title, startX, startY);
-      return startY + lineSpacing;
+      return startY + titleBlockHeight;
     }
 
     const line2 = words.slice(splitIndex).join(" ");
-
-    ctx.fillText(line1, startX, startY);
+    const lineHeight = wrapFontSize * 1.15;
 
     if (line2) {
-      // Second line directly under the first
-      const secondY = startY + lineSpacing;
+      // Two lines centered in the fixed block height
+      const totalLinesHeight = lineHeight;
+      const centerY = startY;
+      const firstY = centerY - totalLinesHeight / 2;
+      const secondY = firstY + lineHeight;
+
+      ctx.fillText(line1, startX, firstY);
       ctx.fillText(line2, startX, secondY);
-      return secondY + lineSpacing; // artist baseline
     } else {
-      return startY + lineSpacing; // only one line used
+      // Only one line but still with smaller font
+      ctx.fillText(line1, startX, startY);
     }
+
+    // Artist still starts the same distance below the "title block"
+    return startY + titleBlockHeight;
   }
 
   // ****************
@@ -501,15 +520,15 @@ async function drawPosterCommon(options) {
   const seconds = (totalSeconds % 60).toString().padStart(2, "0");
   const durationLabel = `${minutes}:${seconds}`;
 
-  // Precompute a conservative max width for the title when code is present
+  // Max title width when a code is present on the right
   const titleMaxWidthWhenCode =
     spotifyUri && showSpotifyCode
-      ? W - paddingX - (spotifyCodeMaxWidth + unitsPerInch * 0.5) // little gap from code
+      ? W - paddingX - (spotifyCodeMaxWidth + unitsPerInch * 0.5)
       : null;
 
   // ==== TITLE / ARTIST / TOP-RIGHT SECTION ====
   if (isAlbum) {
-    // Title (with possible wrap)
+    // Title (wrap + shrink if needed)
     cursorY = drawTitleWithOptionalWrap(
       songOrAlbumName,
       paddingX,
@@ -517,13 +536,13 @@ async function drawPosterCommon(options) {
       titleMaxWidthWhenCode
     );
 
-    // Artist (same as before)
+    // Artist
     ctx.font = `400 ${unitsPerInch * 0.32}px "Inter", system-ui, sans-serif`;
     ctx.fillStyle = "#444";
     ctx.textAlign = "left";
     ctx.fillText(artistName, paddingX, cursorY);
 
-    // Right-hand: ALBUM BY or Spotify code
+    // Right side: album label or code
     if (spotifyUri && showSpotifyCode) {
       const codeUrl = `https://scannables.scdn.co/uri/plain/png/FFFFFF/black/640/${encodeURIComponent(
         spotifyUri
@@ -588,7 +607,7 @@ async function drawPosterCommon(options) {
   } else {
     // SONG VERSION
 
-    // Title (with possible wrap)
+    // Title (wrap + shrink if needed)
     cursorY = drawTitleWithOptionalWrap(
       songOrAlbumName,
       paddingX,
@@ -602,7 +621,7 @@ async function drawPosterCommon(options) {
     ctx.textAlign = "left";
     ctx.fillText(artistName, paddingX, cursorY);
 
-    // Right-hand area for SONG: code vs duration
+    // Right-hand area: code vs duration
     if (spotifyUri && showSpotifyCode) {
       const codeUrl = `https://scannables.scdn.co/uri/plain/png/FFFFFF/black/640/${encodeURIComponent(
         spotifyUri
