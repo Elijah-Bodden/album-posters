@@ -670,7 +670,7 @@ async function drawPosterCommon(options) {
         ctx.fillText(
           "SONG BY " + artistName.toUpperCase(),
           W - paddingX,
-          imageBottom + gapBelowImage * 0.80
+          imageBottom + gapBelowImage * 0.75
         );
         ctx.fillText(
           durationLabel,
@@ -685,7 +685,7 @@ async function drawPosterCommon(options) {
         ctx.fillText(
           "SONG BY " + artistName.toUpperCase(),
           W - paddingX,
-          imageBottom + gapBelowImage * 0.80
+          imageBottom + gapBelowImage * 0.75
         );
         ctx.fillText(
           durationLabel,
