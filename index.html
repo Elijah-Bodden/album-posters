@@ -54,6 +54,23 @@
             placeholder="https://open.spotify.com/album/..."
             required
           />
+          <div>
+  <label>
+    <input type="checkbox" id="showSpotifyCode" />
+    Show scannable Spotify code instead of duration
+  </label>
+</div>
+
+<div id="codeDescriptionWrapper">
+  <label for="codeDescription">Code description (optional, &lt;30 chars)</label>
+  <input
+    type="text"
+    id="codeDescription"
+    maxlength="30"
+    placeholder="e.g. First listen 2025"
+  />
+</div>
+
           <button type="submit" class="button primary">Generate Poster</button>
         </form>
       </section>
