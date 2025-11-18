@@ -441,13 +441,53 @@ async function drawPosterCommon(options) {
     ctx.fillStyle = "#444";
     ctx.fillText(artistName, paddingX, cursorY);
 
-    ctx.font = `400 ${unitsPerInch * 0.18}px "Inter", system-ui, sans-serif`;
-    ctx.textAlign = "right";
-    ctx.fillStyle = "#555";
-    // ctx.fillText("SONG BY " + artistName.toUpperCase(), W - paddingX, imageBottom + gapBelowImage);
+    // Right-hand area: Spotify Code instead of duration text
+    if (spotifyUri) {
+      const codeUrl = `https://scannables.scdn.co/uri/plain/png/000000/white/640/${encodeURIComponent(spotifyUri)}`;
+      try {
+        const codeImg = await loadImage(codeUrl);
 
-    ctx.fillText(durationLabel, W - paddingX, imageBottom + gapBelowImage /*+ unitsPerInch * 0.2*/);
-    ctx.fillText(`RELEASE DATE: ${releaseDate}`, paddingX, gapBelowImage+unitsPerInch * 0.4);
+        // Size for the code (tweak as you like)
+        const codeMaxWidth  = unitsPerInch * 3.0;
+        const codeMaxHeight = unitsPerInch * 1.0;
+
+        const scale = Math.min(
+          codeMaxWidth  / codeImg.width,
+          codeMaxHeight / codeImg.height
+        );
+
+        const drawW = codeImg.width  * scale;
+        const drawH = codeImg.height * scale;
+
+        // Anchor to the same "spot" the duration label was:
+        const anchorX = W - paddingX;                             // right edge
+        const anchorY = imageBottom + gapBelowImage;              // same vertical region
+
+        const drawX = anchorX - drawW;                            // right-align the image
+        const drawY = anchorY - drawH / 2;                        // center it vertically
+
+        ctx.drawImage(codeImg, drawX, drawY, drawW, drawH);
+      } catch (e) {
+        console.error("Failed to load Spotify code image", e);
+        // Fallback: show the duration text if the code fails
+        ctx.textAlign = "right";
+        ctx.fillStyle = "#555";
+        ctx.font = `400 ${unitsPerInch * 0.18}px "Inter", system-ui, sans-serif`;
+        ctx.fillText(durationLabel, W - paddingX, imageBottom + gapBelowImage);
+      }
+    } else {
+      // If no spotifyUri passed, behave like before
+      ctx.textAlign = "right";
+      ctx.fillStyle = "#555";
+      ctx.font = `400 ${unitsPerInch * 0.18}px "Inter", system-ui, sans-serif`;
+      ctx.fillText(durationLabel, W - paddingX, imageBottom + gapBelowImage);
+    }
+
+    // Release date text (left side) – keep as you had it
+    ctx.textAlign = "left";
+    ctx.font = `400 ${unitsPerInch * 0.18}px "Inter", system-ui, sans-serif`;
+    ctx.fillStyle = "#555";
+    ctx.fillText(`RELEASE DATE: ${releaseDate}`, paddingX, gapBelowImage + unitsPerInch * 0.4);
   }
 
   // ==== COLOR BAR ====
@@ -565,8 +605,7 @@ async function drawSongPoster(trackData) {
   const rightLabel = ``;
   const releaseDate = album.release_date;
   const label = "";
-  console.log(trackData)
-  
+  console.log(trackData);
 
   await drawPosterCommon({
     isAlbum: false,
@@ -577,6 +616,7 @@ async function drawSongPoster(trackData) {
     releaseDate,
     label,
     tracksForTracklist: null,
+    spotifyUri: trackData.uri,   // <--- THIS is the key bit
   });
 }
 
