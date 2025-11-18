@@ -453,8 +453,7 @@ async function drawPosterCommon(options) {
     if (line2) {
       // Two lines centered in the fixed block height
       const totalLinesHeight = lineHeight;
-      const centerY = startY;
-      const firstY = centerY - totalLinesHeight / 2;
+      const firstY = startY;
       const secondY = firstY + lineHeight;
 
       ctx.fillText(line1, startX, firstY);
@@ -465,7 +464,7 @@ async function drawPosterCommon(options) {
     }
 
     // Artist still starts the same distance below the "title block"
-    return startY + titleBlockHeight + 0.15 * unitsPerInch;
+    return startY + titleBlockHeight * 2 + 0.15 * unitsPerInch;
   }
 
   // ****************
