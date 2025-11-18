@@ -6,6 +6,7 @@ const REDIRECT_URI = "https://elijah-bodden.github.io/album-posters/";
 const DPI = 300;
 // Modes: album, song
 let currentMode = "album";
+const unitsPerInch = 100;
 const spotifyCodeMaxWidth  = unitsPerInch * 3.0;
 const spotifyCodeMaxHeight = unitsPerInch * 1.0;
 
@@ -358,7 +359,6 @@ async function drawPosterCommon(options) {
   ctx.setTransform(1, 0, 0, 1, 0, 0);
   ctx.clearRect(0, 0, posterCanvas.width, posterCanvas.height);
 
-  const unitsPerInch = 100;
   const { width: posterWIn, height: posterHIn } = getPosterSizeIn();
   const W = posterWIn * unitsPerInch;
   const H = posterHIn * unitsPerInch;
