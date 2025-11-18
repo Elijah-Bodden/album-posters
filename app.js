@@ -17,7 +17,6 @@ function getPosterSizeIn() {
 
 
 // ====== DOM ======
-const loginButton = document.getElementById("loginButton");
 const authStatus = document.getElementById("authStatus");
 const albumForm = document.getElementById("albumForm");
 const albumUrlInput = document.getElementById("albumUrl");
@@ -134,32 +133,6 @@ function loadStoredToken() {
   const expires = Number(localStorage.getItem("spotify_token_expires_at") || 0);
   if (!token || !expires || Date.now() > expires) return null;
   return token;
-}
-
-// ====== INITIAL AUTH HANDLING ======
-async function initAuth() {
-  const url = new URL(window.location.href);
-  const code = url.searchParams.get("code");
-  if (code) {
-    try {
-      accessToken = await exchangeCodeForToken(code);
-      url.searchParams.delete("code");
-      url.searchParams.delete("state");
-      window.history.replaceState({}, "", url.toString());
-    } catch (err) {
-      console.error(err);
-      authStatus.textContent = "Failed to authenticate. Try again.";
-    }
-  } else {
-    accessToken = loadStoredToken();
-  }
-
-  if (accessToken) {
-    authStatus.textContent = "Connected to Spotify.";
-    loginButton.textContent = "Reconnect";
-  } else {
-    authStatus.textContent = "Not connected.";
-  }
 }
 
 // ====== SPOTIFY DATA HELPERS ======
@@ -826,11 +799,6 @@ async function drawSongPoster(trackData, showSpotifyCode, codeDescription) {
 }
 
 // ====== EVENTS ======
-loginButton.addEventListener("click", (e) => {
-  e.preventDefault();
-  redirectToSpotifyAuth();
-});
-
 modeRadios.forEach((radio) => {
   radio.addEventListener("change", () => {
     currentMode = radio.value;
