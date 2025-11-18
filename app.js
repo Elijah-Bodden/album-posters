@@ -831,6 +831,7 @@ if (showCodeCheckbox && codeDescriptionWrapper) {
 albumForm.addEventListener("submit", async (e) => {
   e.preventDefault();
   if (!accessToken) {
+    alert("Connect with Spotify first.")
     authStatus.textContent = "Connect with Spotify first.";
     return;
   }
