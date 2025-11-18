@@ -444,7 +444,7 @@ async function drawPosterCommon(options) {
 
     // Right-hand area: Spotify Code instead of duration text
     if (spotifyUri) {
-      const codeUrl = `https://scannables.scdn.co/uri/plain/png/000000/white/640/${encodeURIComponent(spotifyUri)}`;
+      const codeUrl = `https://scannables.scdn.co/uri/plain/png/FFFFFF/black/640/${encodeURIComponent(spotifyUri)}`;
       try {
         const codeImg = await loadImage(codeUrl);
 
