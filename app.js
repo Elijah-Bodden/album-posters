@@ -27,7 +27,6 @@ const posterCanvas = document.getElementById("posterCanvas");
 const downloadButton = document.getElementById("downloadButton");
 const modeRadios = document.querySelectorAll('input[name="mode"]');
 
-// NEW: controls for Spotify code
 const showCodeCheckbox = document.getElementById("showSpotifyCode");
 const codeDescriptionInput = document.getElementById("codeDescription");
 const codeDescriptionWrapper = document.getElementById("codeDescriptionWrapper");
@@ -398,7 +397,7 @@ async function drawPosterCommon(options) {
     }
   }
 
-  // NEW helper: draw title with optional wrap + smaller font when wrapping.
+  // helper: draw title with optional wrap + smaller font when wrapping.
   // Returns the y-position to use for the artist baseline, but keeps
   // the total block height constant so the rest of the layout doesn't move.
   function drawTitleWithOptionalWrap(title, startX, startY, maxWidthForWrap) {
@@ -466,7 +465,7 @@ async function drawPosterCommon(options) {
     }
 
     // Artist still starts the same distance below the "title block"
-    return startY + titleBlockHeight;
+    return startY + titleBlockHeight + 0.15 * unitsPerInch;
   }
 
   // ****************
