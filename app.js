@@ -672,7 +672,7 @@ async function drawPosterCommon(options) {
   ctx.fillText(
     "https://elijah-bodden.github.io/album-posters/",
     W - paddingX,
-    H - unitsPerInch * 0.3
+    H - unitsPerInch * 0.2
   );
 }
 
