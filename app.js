@@ -477,11 +477,11 @@ async function drawPosterCommon(options) {
   if (tracksForTracklist && tracksForTracklist.length > 0) {
     ctx.textAlign = "left";
     ctx.fillStyle = "#000";
-    ctx.font = `600 ${unitsPerInch * 0.22}px "Inter", system-ui, sans-serif`;
+    ctx.font = `600 ${unitsPerInch * 0.24}px "Inter", system-ui, sans-serif`;
     ctx.fillText("TRACKLIST", paddingX, trackStartY);
 
     trackStartY += unitsPerInch * 0.5;
-    ctx.font = `400 ${unitsPerInch * 0.18}px "Inter", system-ui, sans-serif`;
+    ctx.font = `400 ${unitsPerInch * 0.22}px "Inter", system-ui, sans-serif`;
     ctx.fillStyle = "#333";
 
     const trackTextMaxWidth = W - 2 * paddingX;
