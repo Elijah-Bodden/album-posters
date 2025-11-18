@@ -605,20 +605,6 @@ async function drawPosterCommon(options) {
   } else {
     // SONG VERSION
 
-    // Title (wrap + shrink if needed)
-    cursorY = drawTitleWithOptionalWrap(
-      songOrAlbumName,
-      paddingX,
-      cursorY,
-      titleMaxWidthWhenCode
-    );
-
-    // Artist
-    ctx.font = `400 ${unitsPerInch * 0.32}px "Inter", system-ui, sans-serif`;
-    ctx.fillStyle = "#444";
-    ctx.textAlign = "left";
-    ctx.fillText(artistName, paddingX, cursorY);
-
     // Right-hand area: code vs duration
     if (spotifyUri && showSpotifyCode) {
       const codeUrl = `https://scannables.scdn.co/uri/plain/png/FFFFFF/black/640/${encodeURIComponent(
@@ -691,6 +677,19 @@ async function drawPosterCommon(options) {
           imageBottom + gapBelowImage
         );
     }
+    // Title (wrap + shrink if needed)
+    cursorY = drawTitleWithOptionalWrap(
+      songOrAlbumName,
+      paddingX,
+      cursorY,
+      titleMaxWidthWhenCode
+    );
+    // Artist
+    ctx.font = `400 ${unitsPerInch * 0.32}px "Inter", system-ui, sans-serif`;
+    ctx.fillStyle = "#444";
+    ctx.textAlign = "left";
+    ctx.fillText(artistName, paddingX, cursorY);
+
   }
 
   // ==== COLOR BAR ====
