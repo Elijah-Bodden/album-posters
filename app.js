@@ -682,7 +682,7 @@ async function drawPosterCommon(options) {
       songOrAlbumName,
       paddingX,
       cursorY,
-      titleMaxWidthWhenCode
+      titleMaxWidthWhenCode ?? ("SONG BY " + artistName.toUpperCase()).width
     );
     // Artist
     ctx.font = `400 ${unitsPerInch * 0.32}px "Inter", system-ui, sans-serif`;
