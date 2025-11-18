@@ -16,6 +16,7 @@ function getPosterSizeIn() {
   return { width: 12, height: 18 };
 }
 
+
 // ====== DOM ======
 const loginButton = document.getElementById("loginButton");
 const authStatus = document.getElementById("authStatus");
