@@ -6,6 +6,10 @@ const REDIRECT_URI = "https://elijah-bodden.github.io/album-posters/";
 const DPI = 300;
 // Modes: album, song
 let currentMode = "album";
+const spotifyCodeMaxWidth  = unitsPerInch * 3.0;
+const spotifyCodeMaxHeight = unitsPerInch * 1.0;
+
+
 
 // Poster sizes (inches)
 function getPosterSizeIn() {
@@ -447,14 +451,9 @@ async function drawPosterCommon(options) {
       const codeUrl = `https://scannables.scdn.co/uri/plain/png/FFFFFF/black/640/${encodeURIComponent(spotifyUri)}`;
       try {
         const codeImg = await loadImage(codeUrl);
-
-        // Size for the code (tweak as you like)
-        const codeMaxWidth  = unitsPerInch * 3.0;
-        const codeMaxHeight = unitsPerInch * 1.0;
-
         const scale = Math.min(
-          codeMaxWidth  / codeImg.width,
-          codeMaxHeight / codeImg.height
+          spotifyCodeMaxWidth  / codeImg.width,
+          spotifyCodeMaxHeight / codeImg.height
         );
 
         const drawW = codeImg.width  * scale;
@@ -462,7 +461,7 @@ async function drawPosterCommon(options) {
 
         // Anchor to the same "spot" the duration label was:
         const anchorX = W - paddingX;                             // right edge
-        const anchorY = imageBottom + gapBelowImage;              // same vertical region
+        const anchorY = imageBottom + gapBelowImage * 0.80;              // same vertical region
 
         const drawX = anchorX - drawW;                            // right-align the image
         const drawY = anchorY - drawH / 2;                        // center it vertically
