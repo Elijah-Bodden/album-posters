@@ -526,7 +526,7 @@ async function drawPosterCommon(options) {
         const drawH = codeImg.height * scale;
 
         const anchorX = W - paddingX;
-        const anchorY = imageBottom + gapBelowImage * 0.75;
+        const anchorY = imageBottom + gapBelowImage;
 
         const drawX = anchorX - drawW;
         const drawY = anchorY - drawH / 2;
@@ -591,7 +591,7 @@ async function drawPosterCommon(options) {
         const drawH = codeImg.height * scale;
 
         const anchorX = W - paddingX;
-        const anchorY = imageBottom + gapBelowImage * 0.75;
+        const anchorY = imageBottom + gapBelowImage;
 
         const drawX = anchorX - drawW;
         const drawY = anchorY - drawH / 2;
@@ -624,7 +624,7 @@ async function drawPosterCommon(options) {
         ctx.fillText(
           "SONG BY " + artistName.toUpperCase(),
           W - paddingX,
-          imageBottom + gapBelowImage * 0.75
+          imageBottom + gapBelowImage
         );
         ctx.fillText(
           durationLabel,
@@ -639,7 +639,7 @@ async function drawPosterCommon(options) {
         ctx.fillText(
           "SONG BY " + artistName.toUpperCase(),
           W - paddingX,
-          imageBottom + gapBelowImage * 0.75
+          imageBottom + gapBelowImage
         );
         ctx.fillText(
           durationLabel,
