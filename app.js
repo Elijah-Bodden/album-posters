@@ -461,7 +461,7 @@ async function drawPosterCommon(options) {
 
         // Anchor to the same "spot" the duration label was:
         const anchorX = W - paddingX;                             // right edge
-        const anchorY = imageBottom + gapBelowImage * 0.80;              // same vertical region
+        const anchorY = imageBottom + gapBelowImage * 0.88;              // same vertical region
 
         const drawX = anchorX - drawW;                            // right-align the image
         const drawY = anchorY - drawH / 2;                        // center it vertically
