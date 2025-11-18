@@ -589,9 +589,9 @@ async function drawPosterCommon(options) {
         ctx.fillStyle = "#555";
         ctx.font = `400 ${unitsPerInch * 0.18}px "Inter", system-ui, sans-serif`;
         ctx.fillText(
-          durationLabel,
+          "ALBUM BY " + artistName.toUpperCase(),
           W - paddingX,
-          imageBottom + gapBelowImage
+          imageBottom + gapBelowImage + unitsPerInch * 0.1
         );
       }
     } else {
@@ -765,8 +765,8 @@ async function drawPosterCommon(options) {
 
   // ==== TAGLINE (bottom-right) ====
   ctx.textAlign = "right";
-  ctx.font = `400 ${unitsPerInch * 0.18}px "Inter", system-ui, sans-serif`;
-  ctx.fillStyle = "#aaa";
+  ctx.font = `400 ${unitsPerInch * 0.14}px "Inter", system-ui, sans-serif`;
+  ctx.fillStyle = "#bbb";
   ctx.fillText(
     "https://elijah-bodden.github.io/album-posters/",
     W - paddingX,
