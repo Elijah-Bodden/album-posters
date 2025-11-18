@@ -586,11 +586,11 @@ async function drawPosterCommon(options) {
         );
       }
     } else {
-      ctx.textAlign = "right";
-      ctx.fillStyle = "#555";
-      ctx.font = `400 ${unitsPerInch * 0.18}px "Inter", system-ui, sans-serif`;
-      ctx.fillText(durationLabel, W - paddingX, imageBottom + gapBelowImage);
-      ctx.fillText("SONG BY " + artistName, W - paddingX, imageBottom + gapBelowImage + unitsPerInch * 0.2);
+      // ctx.textAlign = "right";
+      // ctx.fillStyle = "#555";
+      // ctx.font = `400 ${unitsPerInch * 0.18}px "Inter", system-ui, sans-serif`;
+      // ctx.fillText(durationLabel, W - paddingX, imageBottom + gapBelowImage);
+      // ctx.fillText("SONG BY " + artistName, W - paddingX, imageBottom + gapBelowImage + unitsPerInch * 0.2);
 
     }
 
