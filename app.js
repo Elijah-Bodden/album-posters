@@ -595,14 +595,14 @@ async function drawPosterCommon(options) {
     }
 
     // Release date text (left side)
-    ctx.textAlign = "left";
-    ctx.font = `400 ${unitsPerInch * 0.18}px "Inter", system-ui, sans-serif`;
-    ctx.fillStyle = "#555";
-    ctx.fillText(
-      `RELEASE DATE: ${releaseDate}`,
-      paddingX,
-      gapBelowImage + unitsPerInch * 0.4
-    );
+    // ctx.textAlign = "left";
+    // ctx.font = `400 ${unitsPerInch * 0.18}px "Inter", system-ui, sans-serif`;
+    // ctx.fillStyle = "#555";
+    // ctx.fillText(
+    //   `RELEASE DATE: ${releaseDate}`,
+    //   paddingX,
+    //   gapBelowImage + unitsPerInch * 0.4
+    // );
   }
 
   // ==== COLOR BAR ====
