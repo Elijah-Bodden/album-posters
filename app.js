@@ -7,10 +7,8 @@ const DPI = 300;
 // Modes: album, song
 let currentMode = "album";
 const unitsPerInch = 100;
-const spotifyCodeMaxWidth  = unitsPerInch * 3.0;
+const spotifyCodeMaxWidth = unitsPerInch * 3.0;
 const spotifyCodeMaxHeight = unitsPerInch * 1.0;
-
-
 
 // Poster sizes (inches)
 function getPosterSizeIn() {
@@ -29,6 +27,11 @@ const urlLabel = document.getElementById("urlLabel");
 const posterCanvas = document.getElementById("posterCanvas");
 const downloadButton = document.getElementById("downloadButton");
 const modeRadios = document.querySelectorAll('input[name="mode"]');
+
+// NEW: controls for Spotify code
+const showCodeCheckbox = document.getElementById("showSpotifyCode");
+const codeDescriptionInput = document.getElementById("codeDescription");
+const codeDescriptionWrapper = document.getElementById("codeDescriptionWrapper");
 
 let accessToken = null;
 
@@ -352,6 +355,8 @@ async function drawPosterCommon(options) {
     label,
     tracksForTracklist, // array of track names, or null for "no tracklist"
     spotifyUri,
+    showSpotifyCode,
+    codeDescription,
   } = options;
 
   updateCanvasSizeForMode();
@@ -374,7 +379,7 @@ async function drawPosterCommon(options) {
   const gapBelowImage = unitsPerInch * 0.75;
   const paddingX = W * 0.06;
   const barHeight = unitsPerInch * 0.12;
-  
+
   // Background
   ctx.fillStyle = "#ffffff";
   ctx.fillRect(0, 0, W, H);
@@ -411,12 +416,13 @@ async function drawPosterCommon(options) {
 
   let cursorY = imageBottom + gapBelowImage;
 
-  // Duration label
+  // Duration label (album total or track length)
   const totalSeconds = Math.round(totalDurationMs / 1000);
   const minutes = Math.floor(totalSeconds / 60);
   const seconds = (totalSeconds % 60).toString().padStart(2, "0");
   const durationLabel = `${minutes}:${seconds}`;
-  
+
+  // ==== TITLE / ARTIST / TOP-RIGHT SECTION ====
   if (isAlbum) {
     ctx.fillStyle = "#000000";
     ctx.textAlign = "left";
@@ -424,7 +430,7 @@ async function drawPosterCommon(options) {
     ctx.font = `700 ${unitsPerInch * 0.45}px "Inter", system-ui, sans-serif`;
     ctx.fillText(songOrAlbumName, paddingX, cursorY);
     cursorY += unitsPerInch * 0.5;
-  
+
     ctx.font = `400 ${unitsPerInch * 0.32}px "Inter", system-ui, sans-serif`;
     ctx.fillStyle = "#444";
     ctx.fillText(artistName, paddingX, cursorY);
@@ -432,62 +438,81 @@ async function drawPosterCommon(options) {
     ctx.font = `400 ${unitsPerInch * 0.18}px "Inter", system-ui, sans-serif`;
     ctx.textAlign = "right";
     ctx.fillStyle = "#555";
-    ctx.fillText("ALBUM BY " + artistName.toUpperCase(), W - paddingX, imageBottom + gapBelowImage + unitsPerInch * 0.1);
-  }
-  else {
+    ctx.fillText(
+      "ALBUM BY " + artistName.toUpperCase(),
+      W - paddingX,
+      imageBottom + gapBelowImage + unitsPerInch * 0.1
+    );
+  } else {
     ctx.fillStyle = "#000000";
     ctx.textAlign = "left";
     ctx.textBaseline = "alphabetic";
     ctx.font = `700 ${unitsPerInch * 0.45}px "Inter", system-ui, sans-serif`;
     ctx.fillText(songOrAlbumName, paddingX, cursorY);
     cursorY += unitsPerInch * 0.5;
-  
+
     ctx.font = `400 ${unitsPerInch * 0.32}px "Inter", system-ui, sans-serif`;
     ctx.fillStyle = "#444";
     ctx.fillText(artistName, paddingX, cursorY);
 
-    // Right-hand area: Spotify Code instead of duration text
-    if (spotifyUri) {
-      const codeUrl = `https://scannables.scdn.co/uri/plain/png/FFFFFF/black/640/${encodeURIComponent(spotifyUri)}`;
+    // Right-hand area for SONG: code vs duration
+    if (spotifyUri && showSpotifyCode) {
+      const codeUrl = `https://scannables.scdn.co/uri/plain/png/FFFFFF/black/640/${encodeURIComponent(
+        spotifyUri
+      )}`;
       try {
         const codeImg = await loadImage(codeUrl);
         const scale = Math.min(
-          spotifyCodeMaxWidth  / codeImg.width,
+          spotifyCodeMaxWidth / codeImg.width,
           spotifyCodeMaxHeight / codeImg.height
         );
 
-        const drawW = codeImg.width  * scale;
+        const drawW = codeImg.width * scale;
         const drawH = codeImg.height * scale;
 
-        // Anchor to the same "spot" the duration label was:
-        const anchorX = W - paddingX;                             // right edge
-        const anchorY = imageBottom + gapBelowImage * 0.88;              // same vertical region
+        const anchorX = W - paddingX;
+        const anchorY = imageBottom + gapBelowImage * 0.88;
 
-        const drawX = anchorX - drawW;                            // right-align the image
-        const drawY = anchorY - drawH / 2;                        // center it vertically
+        const drawX = anchorX - drawW;
+        const drawY = anchorY - drawH / 2;
 
         ctx.drawImage(codeImg, drawX, drawY, drawW, drawH);
+
+        if (codeDescription) {
+          ctx.font = `400 ${unitsPerInch * 0.18}px "Inter", system-ui, sans-serif`;
+          ctx.textAlign = "center";
+          ctx.fillStyle = "#555";
+          const centerX = drawX + drawW / 2;
+          const textY = drawY + drawH + unitsPerInch * 0.25;
+          ctx.fillText(codeDescription, centerX, textY);
+        }
       } catch (e) {
         console.error("Failed to load Spotify code image", e);
-        // Fallback: show the duration text if the code fails
         ctx.textAlign = "right";
         ctx.fillStyle = "#555";
         ctx.font = `400 ${unitsPerInch * 0.18}px "Inter", system-ui, sans-serif`;
-        ctx.fillText(durationLabel, W - paddingX, imageBottom + gapBelowImage);
+        ctx.fillText(
+          durationLabel,
+          W - paddingX,
+          imageBottom + gapBelowImage
+        );
       }
     } else {
-      // If no spotifyUri passed, behave like before
       ctx.textAlign = "right";
       ctx.fillStyle = "#555";
       ctx.font = `400 ${unitsPerInch * 0.18}px "Inter", system-ui, sans-serif`;
       ctx.fillText(durationLabel, W - paddingX, imageBottom + gapBelowImage);
     }
 
-    // Release date text (left side) – keep as you had it
+    // Release date text (left side)
     ctx.textAlign = "left";
     ctx.font = `400 ${unitsPerInch * 0.18}px "Inter", system-ui, sans-serif`;
     ctx.fillStyle = "#555";
-    ctx.fillText(`RELEASE DATE: ${releaseDate}`, paddingX, gapBelowImage + unitsPerInch * 0.4);
+    ctx.fillText(
+      `RELEASE DATE: ${releaseDate}`,
+      paddingX,
+      gapBelowImage + unitsPerInch * 0.4
+    );
   }
 
   // ==== COLOR BAR ====
@@ -503,14 +528,53 @@ async function drawPosterCommon(options) {
     ctx.fillRect(barX + i * segmentWidth, barTop, segmentWidth, barHeight);
   }
 
+  // Album-specific duration/code placement under bar
   if (isAlbum) {
-    ctx.fillText(
-      durationLabel,
-      barX + barWidth,
-      barTop + barHeight + unitsPerInch * 0.5
-    );
+    const anchorX = barX + barWidth;
+    const anchorY = barTop + barHeight + unitsPerInch * 0.5;
+
+    if (spotifyUri && showSpotifyCode) {
+      const codeUrl = `https://scannables.scdn.co/uri/plain/png/FFFFFF/black/640/${encodeURIComponent(
+        spotifyUri
+      )}`;
+      try {
+        const codeImg = await loadImage(codeUrl);
+        const scale = Math.min(
+          spotifyCodeMaxWidth / codeImg.width,
+          spotifyCodeMaxHeight / codeImg.height
+        );
+
+        const drawW = codeImg.width * scale;
+        const drawH = codeImg.height * scale;
+
+        const drawX = anchorX - drawW;
+        const drawY = anchorY - drawH / 2;
+
+        ctx.drawImage(codeImg, drawX, drawY, drawW, drawH);
+
+        if (codeDescription) {
+          ctx.font = `400 ${unitsPerInch * 0.18}px "Inter", system-ui, sans-serif`;
+          ctx.textAlign = "center";
+          ctx.fillStyle = "#555";
+          const centerX = drawX + drawW / 2;
+          const textY = drawY + drawH + unitsPerInch * 0.25;
+          ctx.fillText(codeDescription, centerX, textY);
+        }
+      } catch (e) {
+        console.error("Failed to load Spotify code image (album)", e);
+        ctx.textAlign = "right";
+        ctx.fillStyle = "#555";
+        ctx.font = `400 ${unitsPerInch * 0.18}px "Inter", system-ui, sans-serif`;
+        ctx.fillText(durationLabel, anchorX, anchorY);
+      }
+    } else {
+      ctx.textAlign = "right";
+      ctx.fillStyle = "#555";
+      ctx.font = `400 ${unitsPerInch * 0.18}px "Inter", system-ui, sans-serif`;
+      ctx.fillText(durationLabel, anchorX, anchorY);
+    }
   }
-  
+
   let trackStartY = barTop + barHeight + unitsPerInch * 0.9;
 
   // ==== TRACKLIST (only if we have tracks) ====
@@ -554,25 +618,36 @@ async function drawPosterCommon(options) {
 
   // ==== FOOTER ====
   if (isAlbum) {
-  const footerY = H - unitsPerInch * 0.8;
-  ctx.font = `400 ${unitsPerInch * 0.18}px "Inter", system-ui, sans-serif`;
-  ctx.fillStyle = "#777";
-  ctx.textAlign = "left";
-  ctx.fillText(`RELEASE DATE: ${releaseDate}`, paddingX, footerY);
+    const footerY = H - unitsPerInch * 0.8;
+    ctx.font = `400 ${unitsPerInch * 0.18}px "Inter", system-ui, sans-serif`;
+    ctx.fillStyle = "#777";
+    ctx.textAlign = "left";
+    ctx.fillText(`RELEASE DATE: ${releaseDate}`, paddingX, footerY);
+    ctx.fillText(
+      `RECORD LABEL: ${label || ""}`,
+      paddingX,
+      footerY + unitsPerInch * 0.3
+    );
+  }
+
+  // ==== TAGLINE (bottom-right) ====
+  ctx.textAlign = "right";
+  ctx.font = `400 ${unitsPerInch * 0.14}px "Inter", system-ui, sans-serif`;
+  ctx.fillStyle = "#999";
   ctx.fillText(
-    `RECORD LABEL: ${label || ""}`,
-    paddingX,
-    footerY + unitsPerInch * 0.3
+    "Made with my chopped ass poster generator",
+    W - paddingX,
+    H - unitsPerInch * 0.3
   );
-}}
+}
+
 // Album-specific wrapper
-async function drawAlbumPoster(albumData) {
+async function drawAlbumPoster(albumData, showSpotifyCode, codeDescription) {
   const imageUrl =
     (albumData.images && albumData.images[0] && albumData.images[0].url) || null;
   const artistName = (albumData.artists || []).map((a) => a.name).join(", ");
   const songOrAlbumName = albumData.name;
-  const rightLabel = `ALBUM BY ${artistName.toUpperCase()}`;
-  console.log(albumData)
+  console.log(albumData);
   const totalDurationMs = albumData.tracks.items.reduce(
     (sum, t) => sum + t.duration_ms,
     0
@@ -580,7 +655,6 @@ async function drawAlbumPoster(albumData) {
   const tracks = albumData.tracks.items.map((t) => t.name);
   const releaseDate = albumData.release_date;
   const label = albumData.label || "";
-
 
   await drawPosterCommon({
     isAlbum: true,
@@ -591,19 +665,20 @@ async function drawAlbumPoster(albumData) {
     releaseDate,
     label,
     tracksForTracklist: tracks,
-    spotifyUri: null
+    spotifyUri: albumData.uri,
+    showSpotifyCode,
+    codeDescription,
   });
 }
 
 // Song-specific wrapper (no tracklist)
-async function drawSongPoster(trackData) {
+async function drawSongPoster(trackData, showSpotifyCode, codeDescription) {
   const album = trackData.album;
   const imageUrl =
     (album.images && album.images[0] && album.images[0].url) || null;
 
   const songOrAlbumName = trackData.name;
   const artistName = (trackData.artists || []).map((a) => a.name).join(", ");
-  const rightLabel = ``;
   const releaseDate = album.release_date;
   const label = "";
   console.log(trackData);
@@ -618,6 +693,8 @@ async function drawSongPoster(trackData) {
     label,
     tracksForTracklist: null,
     spotifyUri: trackData.uri,
+    showSpotifyCode,
+    codeDescription,
   });
 }
 
@@ -642,6 +719,15 @@ modeRadios.forEach((radio) => {
   });
 });
 
+// Show/hide description input based on checkbox
+if (showCodeCheckbox && codeDescriptionWrapper) {
+  const toggleDesc = () => {
+    codeDescriptionWrapper.style.display = showCodeCheckbox.checked ? "" : "none";
+  };
+  showCodeCheckbox.addEventListener("change", toggleDesc);
+  toggleDesc();
+}
+
 albumForm.addEventListener("submit", async (e) => {
   e.preventDefault();
   if (!accessToken) {
@@ -650,6 +736,11 @@ albumForm.addEventListener("submit", async (e) => {
   }
 
   const url = albumUrlInput.value.trim();
+  const showSpotifyCode = !!(showCodeCheckbox && showCodeCheckbox.checked);
+  const codeDescription = (codeDescriptionInput?.value || "")
+    .trim()
+    .slice(0, 30);
+
   try {
     downloadButton.disabled = true;
 
@@ -662,7 +753,7 @@ albumForm.addEventListener("submit", async (e) => {
       }
       authStatus.textContent = "Fetching album…";
       const album = await fetchAlbum(albumId);
-      await drawAlbumPoster(album);
+      await drawAlbumPoster(album, showSpotifyCode, codeDescription);
       authStatus.textContent = `Loaded album "${album.name}"`;
     } else {
       const trackId = extractTrackIdFromUrl(url);
@@ -673,7 +764,7 @@ albumForm.addEventListener("submit", async (e) => {
       }
       authStatus.textContent = "Fetching track…";
       const track = await fetchTrack(trackId);
-      await drawSongPoster(track);
+      await drawSongPoster(track, showSpotifyCode, codeDescription);
       authStatus.textContent = `Loaded song "${track.name}"`;
     }
 
