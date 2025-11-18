@@ -769,8 +769,8 @@ async function drawPosterCommon(options) {
   ctx.fillStyle = "#bbb";
   ctx.fillText(
     "https://elijah-bodden.github.io/album-posters/",
-    W - paddingX,
-    H - unitsPerInch * 0.2
+    W - unitsPerInch * 0.05,
+    H - unitsPerInch * 0.05
   );
 }
 
