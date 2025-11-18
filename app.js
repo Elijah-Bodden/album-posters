@@ -435,6 +435,48 @@ async function drawPosterCommon(options) {
     ctx.fillStyle = "#444";
     ctx.fillText(artistName, paddingX, cursorY);
 
+        if (spotifyUri && showSpotifyCode) {
+      const codeUrl = `https://scannables.scdn.co/uri/plain/png/FFFFFF/black/640/${encodeURIComponent(
+        spotifyUri
+      )}`;
+      try {
+        const codeImg = await loadImage(codeUrl);
+        const scale = Math.min(
+          spotifyCodeMaxWidth / codeImg.width,
+          spotifyCodeMaxHeight / codeImg.height
+        );
+
+        const drawW = codeImg.width * scale;
+        const drawH = codeImg.height * scale;
+
+        const anchorX = W - paddingX;
+        const anchorY = imageBottom + gapBelowImage * 0.88;
+
+        const drawX = anchorX - drawW;
+        const drawY = anchorY - drawH / 2;
+
+        ctx.drawImage(codeImg, drawX, drawY, drawW, drawH);
+
+        if (codeDescription) {
+          ctx.font = `400 ${unitsPerInch * 0.18}px "Inter", system-ui, sans-serif`;
+          ctx.textAlign = "center";
+          ctx.fillStyle = "#555";
+          const centerX = drawX + drawW / 2;
+          const textY = drawY + drawH + unitsPerInch * 0.25;
+          ctx.fillText(codeDescription, centerX, textY);
+        }
+      } catch (e) {
+        console.error("Failed to load Spotify code image", e);
+        ctx.textAlign = "right";
+        ctx.fillStyle = "#555";
+        ctx.font = `400 ${unitsPerInch * 0.18}px "Inter", system-ui, sans-serif`;
+        ctx.fillText(
+          durationLabel,
+          W - paddingX,
+          imageBottom + gapBelowImage
+        );
+      }
+    } else {
     ctx.font = `400 ${unitsPerInch * 0.18}px "Inter", system-ui, sans-serif`;
     ctx.textAlign = "right";
     ctx.fillStyle = "#555";
@@ -443,7 +485,8 @@ async function drawPosterCommon(options) {
       W - paddingX,
       imageBottom + gapBelowImage + unitsPerInch * 0.1
     );
-  } else {
+    }
+    } else {
     ctx.fillStyle = "#000000";
     ctx.textAlign = "left";
     ctx.textBaseline = "alphabetic";
@@ -526,53 +569,6 @@ async function drawPosterCommon(options) {
   for (let i = 0; i < nSegments; i++) {
     ctx.fillStyle = palette[i];
     ctx.fillRect(barX + i * segmentWidth, barTop, segmentWidth, barHeight);
-  }
-
-  // Album-specific duration/code placement under bar
-  if (isAlbum) {
-    const anchorX = barX + barWidth;
-    const anchorY = barTop + barHeight + unitsPerInch * 0.5;
-
-    if (spotifyUri && showSpotifyCode) {
-      const codeUrl = `https://scannables.scdn.co/uri/plain/png/FFFFFF/black/640/${encodeURIComponent(
-        spotifyUri
-      )}`;
-      try {
-        const codeImg = await loadImage(codeUrl);
-        const scale = Math.min(
-          spotifyCodeMaxWidth / codeImg.width,
-          spotifyCodeMaxHeight / codeImg.height
-        );
-
-        const drawW = codeImg.width * scale;
-        const drawH = codeImg.height * scale;
-
-        const drawX = anchorX - drawW;
-        const drawY = anchorY - drawH / 2;
-
-        ctx.drawImage(codeImg, drawX, drawY, drawW, drawH);
-
-        if (codeDescription) {
-          ctx.font = `400 ${unitsPerInch * 0.18}px "Inter", system-ui, sans-serif`;
-          ctx.textAlign = "center";
-          ctx.fillStyle = "#555";
-          const centerX = drawX + drawW / 2;
-          const textY = drawY + drawH + unitsPerInch * 0.25;
-          ctx.fillText(codeDescription, centerX, textY);
-        }
-      } catch (e) {
-        console.error("Failed to load Spotify code image (album)", e);
-        ctx.textAlign = "right";
-        ctx.fillStyle = "#555";
-        ctx.font = `400 ${unitsPerInch * 0.18}px "Inter", system-ui, sans-serif`;
-        ctx.fillText(durationLabel, anchorX, anchorY);
-      }
-    } else {
-      ctx.textAlign = "right";
-      ctx.fillStyle = "#555";
-      ctx.font = `400 ${unitsPerInch * 0.18}px "Inter", system-ui, sans-serif`;
-      ctx.fillText(durationLabel, anchorX, anchorY);
-    }
   }
 
   let trackStartY = barTop + barHeight + unitsPerInch * 0.9;
