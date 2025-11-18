@@ -444,9 +444,9 @@ async function drawPosterCommon(options) {
     ctx.font = `400 ${unitsPerInch * 0.18}px "Inter", system-ui, sans-serif`;
     ctx.textAlign = "right";
     ctx.fillStyle = "#555";
-    ctx.fillText("SONG BY " + artistName.toUpperCase(), W - paddingX, imageBottom + gapBelowImage);
+    // ctx.fillText("SONG BY " + artistName.toUpperCase(), W - paddingX, imageBottom + gapBelowImage);
 
-    ctx.fillText(durationLabel, W - paddingX, imageBottom + gapBelowImage + unitsPerInch * 0.2);
+    ctx.fillText(durationLabel, W - paddingX, imageBottom + gapBelowImage /*+ unitsPerInch * 0.2*/);
     ctx.fillText(`RELEASE DATE: ${releaseDate}`, paddingX, gapBelowImage+unitsPerInch * 0.4);
   }
 
