@@ -488,7 +488,7 @@ async function drawPosterCommon(options) {
           ctx.fillStyle = "#555";
 
           const centerX = drawX + drawW / 2;
-          const firstLineY = drawY + drawH + unitsPerInch * 0.25;
+          const firstLineY = drawY + drawH + unitsPerInch * 0.1;
           const maxTextWidth = drawW;                    // don’t exceed code width
           const lineHeight = unitsPerInch * 0.22;        // spacing between lines
 
@@ -562,7 +562,7 @@ async function drawPosterCommon(options) {
           ctx.fillStyle = "#555";
 
           const centerX = drawX + drawW / 2;
-          const firstLineY = drawY + drawH + unitsPerInch * 0.25;
+          const firstLineY = drawY + drawH + unitsPerInch * 0.1;
           const maxTextWidth = drawW;                    // don’t exceed code width
           const lineHeight = unitsPerInch * 0.22;        // spacing between lines
 
