@@ -734,7 +734,7 @@ albumForm.addEventListener("submit", async (e) => {
   const showSpotifyCode = !!(showCodeCheckbox && showCodeCheckbox.checked);
   const codeDescription = (codeDescriptionInput?.value || "")
     .trim()
-    .slice(0, 30);
+    .slice(0, 70);
 
   try {
     downloadButton.disabled = true;
