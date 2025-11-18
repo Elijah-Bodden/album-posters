@@ -369,6 +369,31 @@ async function drawPosterCommon(options) {
   const scaleX = posterCanvas.width / W;
   const scaleY = posterCanvas.height / H;
   ctx.scale(scaleX, scaleY);
+  
+  function drawWrappedCenteredText(text, centerX, firstLineY, maxWidth, lineHeight) {
+    if (!text) return;
+    const words = text.split(/\s+/).filter(Boolean);
+    if (words.length === 0) return;
+
+    let line = "";
+    let y = firstLineY;
+
+    for (let i = 0; i < words.length; i++) {
+      const testLine = line ? line + " " + words[i] : words[i];
+      const w = ctx.measureText(testLine).width;
+      if (w > maxWidth && line) {
+        ctx.fillText(line, centerX, y);
+        line = words[i];
+        y += lineHeight;
+      } else {
+        line = testLine;
+      }
+    }
+
+    if (line) {
+      ctx.fillText(line, centerX, y);
+    }
+  }
 
   // ****************
   // LAYOUT CONSTANTS
@@ -460,9 +485,19 @@ async function drawPosterCommon(options) {
           ctx.font = `400 ${unitsPerInch * 0.18}px "Inter", system-ui, sans-serif`;
           ctx.textAlign = "center";
           ctx.fillStyle = "#555";
+
           const centerX = drawX + drawW / 2;
-          const textY = drawY + drawH + unitsPerInch * 0.25;
-          ctx.fillText(codeDescription, centerX, textY);
+          const firstLineY = drawY + drawH + unitsPerInch * 0.25;
+          const maxTextWidth = drawW;                    // don’t exceed code width
+          const lineHeight = unitsPerInch * 0.22;        // spacing between lines
+
+          drawWrappedCenteredText(
+            codeDescription,
+            centerX,
+            firstLineY,
+            maxTextWidth,
+            lineHeight
+          );
         }
       } catch (e) {
         console.error("Failed to load Spotify code image", e);
