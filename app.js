@@ -526,7 +526,7 @@ async function drawPosterCommon(options) {
         const drawH = codeImg.height * scale;
 
         const anchorX = W - paddingX;
-        const anchorY = imageBottom + gapBelowImage * 0.88;
+        const anchorY = imageBottom + gapBelowImage * 0.75;
 
         const drawX = anchorX - drawW;
         const drawY = anchorY - drawH / 2;
@@ -591,7 +591,7 @@ async function drawPosterCommon(options) {
         const drawH = codeImg.height * scale;
 
         const anchorX = W - paddingX;
-        const anchorY = imageBottom + gapBelowImage * 0.88;
+        const anchorY = imageBottom + gapBelowImage * 0.75;
 
         const drawX = anchorX - drawW;
         const drawY = anchorY - drawH / 2;
