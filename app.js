@@ -624,12 +624,12 @@ async function drawPosterCommon(options) {
         ctx.fillText(
           "SONG BY " + artistName.toUpperCase(),
           W - paddingX,
-          imageBottom + gapBelowImage * 0.75
+          imageBottom + gapBelowImage * 0.85
         );
         ctx.fillText(
           durationLabel,
           W - paddingX,
-          imageBottom + gapBelowImage
+          imageBottom + gapBelowImage * 1.1
         );
       }
     } else {
@@ -639,12 +639,12 @@ async function drawPosterCommon(options) {
         ctx.fillText(
           "SONG BY " + artistName.toUpperCase(),
           W - paddingX,
-          imageBottom + gapBelowImage * 0.75
+          imageBottom + gapBelowImage * 0.85
         );
         ctx.fillText(
           durationLabel,
           W - paddingX,
-          imageBottom + gapBelowImage
+          imageBottom + gapBelowImage * 1.1
         );
     }
     // Title (wrap + shrink if needed)
