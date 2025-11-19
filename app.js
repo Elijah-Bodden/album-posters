@@ -663,7 +663,7 @@ async function drawPosterCommon(options) {
   }
 
   // ==== COLOR BAR ====
-  const barTop = cursorY + unitsPerInch * 0.6;
+  const barTop = isAlbum ? cursorY + unitsPerInch * 0.6 : H - unitsPerInch * 0.5;
   const barWidth = W - 2 * paddingX;
   const barX = paddingX;
 
