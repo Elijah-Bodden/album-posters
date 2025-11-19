@@ -836,7 +836,7 @@ albumForm.addEventListener("submit", async (e) => {
     if (currentMode === "album") {
       const albumId = extractAlbumIdFromUrl(url);
       if (!albumId) {
-        alert("Couldn't parse album ID from that URL.");
+        alert("Couldn't parse album ID from that URL. Are you sure it's an album and not a song?");
         downloadButton.disabled = false;
         return;
       }
@@ -847,7 +847,7 @@ albumForm.addEventListener("submit", async (e) => {
     } else {
       const trackId = extractTrackIdFromUrl(url);
       if (!trackId) {
-        alert("Couldn't parse track ID from that URL.");
+        alert("Couldn't parse track ID from that URL. Are you sure it's a song and not an album?");
         downloadButton.disabled = false;
         return;
       }
