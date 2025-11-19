@@ -434,7 +434,7 @@ async function drawPosterCommon(options) {
     }
 
     // Artist still starts the same distance below the "title block"
-    return startY + titleBlockHeight * (line2 ? 2 : 1) + 0.15 * unitsPerInch;
+    return startY + titleBlockHeight * (line2 ? 2 : 1);
   }
 
   // ****************
