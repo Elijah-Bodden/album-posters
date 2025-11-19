@@ -491,7 +491,7 @@ async function drawPosterCommon(options) {
   // Max title width when a code is present on the right
   const titleMaxWidthWhenCode =
     spotifyUri && showSpotifyCode
-      ? W - paddingX - (spotifyCodeMaxWidth + unitsPerInch * 0.8)
+      ? W - paddingX - (spotifyCodeMaxWidth + unitsPerInch * 0.5)
       : null;
 
   // ==== TITLE / ARTIST / TOP-RIGHT SECTION ====
@@ -663,7 +663,7 @@ async function drawPosterCommon(options) {
   }
 
   // ==== COLOR BAR ====
-  const barTop = isAlbum ? cursorY + unitsPerInch * 0.6 : H - unitsPerInch * 0.5;
+  const barTop = isAlbum ? cursorY + unitsPerInch * 0.6 : H - unitsPerInch * 0.8;
   const barWidth = W - 2 * paddingX;
   const barX = paddingX;
 
